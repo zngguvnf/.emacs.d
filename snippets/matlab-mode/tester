@@ -1,0 +1,12 @@
+#name : tester documentation
+# --
+function tests = `(file-name-sans-extension (buffer-name))`
+    tests = functiontests(localfunctions);
+end
+
+function test_${1:function}(testCase)
+            $2
+end
+
+
+% End of file: `(file-name-nondirectory (buffer-file-name))`

@@ -1,0 +1,10 @@
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: cut-here
+# key: cut-here
+# binding: direct-keybinding
+# --
+--8<---------------cut-here---------------start------------->8---
+$1
+--8<---------------cut-here---------------end--------------->8---
+
+$0

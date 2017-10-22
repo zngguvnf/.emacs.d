@@ -1,0 +1,26 @@
+TODO:
+- replace user-email-adress with git-email
+  - this is not working for me:
+    http://blog.chmouel.com/2014/03/14/how-do-i-manage-my-copyright-headers-in-emacs/
+#name : function documentation
+# --
+function [${1:output}] = ${2:`(car (last (split-string (file-name-sans-extension (buffer-file-name)) "/")))`}(${3:input})
+
+% ${4:One-line discription}
+% -----------------------------------------------------------------------------
+% Usage: $1 = $2($3)
+%
+%   input  :
+%           $3
+%   output :
+%    	    $1
+%
+% Copyright: `(insert (format-time-string "%Y"))` by `(user-full-name)`
+% License  : ${5:$$(yas/choose-value '("BSD License" "GNU General Public License" "MIT License" "WTFPL – Do What the Fuck You Want to Public License"))}
+% Author   : `(user-full-name)` `(replace-regexp-in-string "@" " AT " (if user-mail-address (concat "<" user-mail-address ">") ""))`
+% Date     : `(insert (format-time-string "%Y-%m-%d"))`
+% -----------------------------------------------------------------------------
+
+$0
+end
+% End of file: `(file-name-nondirectory (buffer-file-name))`

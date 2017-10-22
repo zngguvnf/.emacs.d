@@ -1,0 +1,2957 @@
+* General settings
+  :PROPERTIES:
+  :CREATED:  [2017-01-16 Mon 18:55]
+  :END:
+  :LOGBOOK:
+  - State "DONE"       from "WAITING"    [2017-01-16 Mon 18:55]
+  :END:
+Always use UTF-8
+#+BEGIN_SRC emacs-lisp :results none
+(setq locale-coding-system 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+(set-clipboard-coding-system 'utf-8)
+(set-default-coding-systems 'utf-8)
+#+END_SRC
+
+don't show hat pesky toolbar
+#+BEGIN_SRC emacs-lisp :results none
+(when window-system
+  (tool-bar-mode -1))
+#+END_SRC
+
+hide menu-bar in gui and in terminal
+#+BEGIN_SRC emacs-lisp :results none
+; (menu-bar-mode -1)
+#+END_SRC
+
+turn off the splash screen on startup
+#+BEGIN_SRC emacs-lisp :results none
+(setq inhibit-startup-message t)
+#+END_SRC
+
+turn off the scratch buffer header
+#+BEGIN_SRC emacs-lisp :results none
+(setq initial-scratch-message nil)
+#+END_SRC
+
+store backup files where they don't bother me
+#+BEGIN_SRC emacs-lisp :results none
+(setq backup-directory-alist '(("." . "~/.emacs.d/backups/")))
+#+END_SRC
+
+don't create #autosave-files#
+#+BEGIN_SRC emacs-lisp :results none
+(setq auto-save-default nil)
+#+END_SRC
+
+break line after 80 characters
+#+BEGIN_SRC emacs-lisp :results none
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
+(setq-default fill-column 80)
+#+END_SRC
+
+always ask for `y` or `n` instead of `yes` or `no`
+#+BEGIN_SRC emacs-lisp :results none
+(defalias 'yes-or-no-p 'y-or-n-p)(defalias 'yes-or-no-p 'y-or-n-p)
+#+END_SRC
+
+overwrite marked text
+#+BEGIN_SRC emacs-lisp :results none
+(delete-selection-mode 1)
+#+END_SRC
+
+highlight matching pairs of parentheses and other characters
+#+BEGIN_SRC emacs-lisp :results none
+(setq show-paren-delay 0)
+(show-paren-mode 1)
+#+END_SRC
+
+insert closing parentheses automatically
+#+BEGIN_SRC emacs-lisp :results none
+(electric-pair-mode 1)
+#+END_SRC
+
+no scrollbars
+#+BEGIN_SRC emacs-lisp :results none
+(if window-system
+  (scroll-bar-mode -1))
+#+END_SRC
+
+show whitespace at end of line
+#+BEGIN_SRC emacs-lisp :results none
+(setq-default show-trailing-whitespace t)
+#+END_SRC
+
+always use spaces, not tabs, when indenting
+#+BEGIN_SRC emacs-lisp :results none
+(setq-default indent-tabs-mode nil)
+#+END_SRC
+
+don't blink the cursor
+#+BEGIN_SRC emacs-lisp :results none
+(blink-cursor-mode 0)
+#+END_SRC
+
+start in Fullscreen-mode
+#+BEGIN_SRC emacs-lisp :results none
+;(toggle-frame-fullscreen)
+#+END_SRC
+
+focus help-windows when they open
+#+BEGIN_SRC emacs-lisp :results none
+(setq help-window-select t)
+#+END_SRC
+
+* Emacs server
+start emacs server
+#+BEGIN_SRC emacs-lisp :results none
+(require 'server)
+(unless (server-running-p)
+  (server-start))
+#+END_SRC
+
+* Packages
+Use package.el and add sources
+if emacs says something like melpa unavailable, check if you installed gnutls
+#+BEGIN_SRC emacs-lisp :results none
+(setq tls-checktrust t)
+(setq gnutls-verify-error t)
+(package-initialize)
+(setq package-enable-at-startup nil)
+(setq package-archives nil)
+(dolist (source '(;("marmalade" . "https://marmalade-repo.org/packages/")
+		   ("gnu" . "https://elpa.gnu.org/packages/")
+                   ("melpa-stable" . "https://stable.melpa.org/packages/")
+                   ("org" . "http://orgmode.org/elpa/")
+                   ("melpa" . "https://melpa.org/packages/")))
+                   (add-to-list 'package-archives source t))
+(unless (and (file-exists-p "~/.emacs.d/elpa/archives/gnu")
+             (file-exists-p "~/.emacs.d/elpa/archives/melpa")
+             (file-exists-p "~/.emacs.d/elpa/archives/org")
+             ;(file-exists-p "~/.emacs.d/elpa/archives/marmalade")
+             (file-exists-p "~/.emacs.d/elpa/archives/melpa-stable"))
+             (package-refresh-contents))
+#+END_SRC
+
+use use-package and load all needed packages
+#+BEGIN_SRC emacs-lisp :results none
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+(setq use-package-verbose t)
+(setq use-package-always-ensure t)
+(require 'use-package)
+(use-package auto-compile
+  :config (auto-compile-on-load-mode))
+(setq load-prefer-newer t)
+#+END_SRC
+
+* Which-Key
+displays the key bindings following your currently entered incomplete command
+#+Begin_SRC emacs-lisp
+(use-package which-key
+  :diminish which-key-mode
+  :config
+  (which-key-mode))
+#+END_SRC
+
+* Evil-Mode
+in terminal Tab is equil to C-i, so tab will not work as aspected in org-mode in
+terminal if you do not fix it, before evil is configured. :init is perfect for this
+#+Begin_SRC emacs-lisp :results none
+(use-package evil
+  :ensure t
+  :init
+  (setq evil-want-C-i-jump nil)
+  :config
+  (evil-mode 1)
+  ;; remove all keybindings from insert-state keymap
+  (setcdr evil-insert-state-map nil)
+  ;; but [escape] should switch back to normal state
+  (define-key evil-insert-state-map [escape] 'evil-normal-state))
+#+END_SRC
+
+** Evil-leader
+#+Begin_SRC emacs-lisp :results none
+(use-package evil-leader
+  :ensure t
+  :config
+  (global-evil-leader-mode)
+  (evil-leader/set-leader "<SPC>"))
+#+END_SRC
+*** Keybindings
+Here are some keybindings that do not deserve a section on its own
+Genreal:
+#+Begin_SRC emacs-lisp :results none
+(which-key-add-key-based-replacements "SPC x" "M-x")
+;(evil-leader/set-key "x" 'execute-extended-command)
+(evil-leader/set-key "x" 'helm-M-x)
+
+#+END_SRC
+
+Buffers:
+#+Begin_SRC emacs-lisp :results none
+(which-key-declare-prefixes "SPC b" "Buffers")
+(evil-leader/set-key "bd" 'kill-this-buffer)
+(evil-leader/set-key "bs" 'switch-to-buffer)
+#+END_SRC
+Help:
+#+Begin_SRC emacs-lisp :results none
+(which-key-declare-prefixes "SPC h" "Help")
+(which-key-declare-prefixes "SPC hd" "Describe")
+(evil-leader/set-key "hdk" 'describe-key)
+(evil-leader/set-key "hdf" 'describe-function)
+(evil-leader/set-key "hdv" 'describe-variable)
+#+END_SRC
+Files:
+#+Begin_SRC emacs-lisp :results none
+(which-key-declare-prefixes "SPC f" "Files")
+(evil-leader/set-key "ff" 'find-file)
+(evil-leader/set-key "fs" 'save-buffer)
+(evil-leader/set-key "fd" '(lambda () (interactive) (find-file "~/.emacs.d/dotemacs.org")))
+(which-key-add-key-based-replacements "SPC fd" "dotemacs.org")
+(evil-leader/set-key "fg" '(lambda () (interactive) (find-file "~/org/gtd.org")))
+(which-key-add-key-based-replacements "SPC fg" "gtd.org")
+(evil-leader/set-key "ft" '(lambda () (interactive) (find-file "~/org/trackme.org")))
+(which-key-add-key-based-replacements "SPC ft" "trackme.org")
+#+END_SRC
+
+C-c C-c is a very important Emacs keybinding, but i do not want to use Ctrl key,
+so i replace it with 3 times Space.
+C-c C-c runs a mode specific function because of that i will just simulate C-c C-c
+#+Begin_SRC emacs-lisp :results none
+(defun simulate-key-press (key)
+  "Pretend that KEY was pressed.
+KEY must be given in `kbd' notation."
+  `(lambda () (interactive)
+     (setq prefix-arg current-prefix-arg)
+     (setq unread-command-events (listify-key-sequence (read-kbd-macro ,key)))))
+(define-key evil-normal-state-map (kbd "SPC SPC SPC") (simulate-key-press "C-c C-c"))
+(which-key-add-key-based-replacements "SPC SPC SPC" "C-c C-c")
+#+END_SRC
+
+** Evil-surround
+surround stuff with '()', '"", etc quickliy
++to use it press "ys", choose what to surround (e.g. iw), choose surrounding+
+i do not use evil-substitue, so i mapped evil-surround to "s"
+#+Begin_SRC emacs-lisp :results none
+(use-package evil-surround
+  :config
+  (global-evil-surround-mode 1)
+  (define-key evil-normal-state-map "s" 'evil-surround-edit)
+  (define-key evil-visual-state-map "s" 'evil-surround-region))
+#+END_SRC
+
+* Windows
+i want emacs to split the windows horizontally by default
+seems you only need this when using a small (notebook) screen
+strange i needed this when i was running arch on the macbook air, with mint it
+is better without it maybe there are different defaults
+#+Begin_SRC emacs-lisp :results none
+(when (memq window-system '(x))
+  (setq split-height-threshold nil)
+  (setq split-width-threshold 80))
+#+END_SRC
+
+numbers every window, so you can change focus with shortcuts
+i need to overwrite the window-numbering-install-mode-line function because i
+use non standard powerline
+#+Begin_SRC emacs-lisp :results none
+  (use-package window-numbering
+  :config
+    (window-numbering-mode 1))
+  ;;(defun window-numbering-install-mode-line (&optional position)
+  ;;  "Do nothing.")
+#+END_SRC
+** Keybindings
+switch between windows by number
+#+Begin_SRC emacs-lisp :results none
+(which-key-declare-prefixes "SPC w" "Windows")
+(evil-leader/set-key "w0" 'select-window-0)
+(evil-leader/set-key "w1" 'select-window-1)
+(evil-leader/set-key "w2" 'select-window-2)
+(evil-leader/set-key "w3" 'select-window-3)
+(evil-leader/set-key "w4" 'select-window-4)
+(evil-leader/set-key "w5" 'select-window-5)
+(evil-leader/set-key "w6" 'select-window-6)
+(evil-leader/set-key "w7" 'select-window-7)
+(evil-leader/set-key "w8" 'select-window-8)
+(evil-leader/set-key "w9" 'select-window-9)
+#+END_SRC
+
+switch between windows with hjkl
+#+Begin_SRC emacs-lisp :results none
+(evil-leader/set-key "wh" 'windmove-left)
+(evil-leader/set-key "wj" 'windmove-down)
+(evil-leader/set-key "wk" 'windmove-up)
+(evil-leader/set-key "wl" 'windmove-right)
+#+END_SRC
+
+split windows
+#+Begin_SRC emacs-lisp :results none
+(defun split-window-right-focus-and-scratch ()
+  "Split the window horizontally, focus the new window and switch to *scratch*"
+  (interactive)
+  (split-window-right)
+  (windmove-right)
+  (switch-to-buffer "*scratch*"))
+(defun split-window-left-focus-and-scratch ()
+  "Split the window horizontally, focus the new window and switch to *scratch*"
+  (interactive)
+  (split-window-right)
+  (switch-to-buffer "*scratch*"))
+(defun split-window-above-focus-and-scratch ()
+  "Split the window vertically, focus the new window and switch to *scratch*"
+  (interactive)
+  (split-window-below)
+  (switch-to-buffer "*scratch*"))
+(defun split-window-below-focus-and-scratch ()
+  "Split the window vertically, focus the new window and switch to *scratch*"
+  (interactive)
+  (split-window-below)
+  (windmove-down)
+  (switch-to-buffer "*scratch*"))
+
+(which-key-declare-prefixes "SPC ws" "split")
+(which-key-add-key-based-replacements "SPC wsh" "left")
+(which-key-add-key-based-replacements "SPC wsj" "below")
+(which-key-add-key-based-replacements "SPC wsk" "above")
+(which-key-add-key-based-replacements "SPC wsl" "right")
+(evil-leader/set-key "wsh" 'split-window-left-focus-and-scratch)
+(evil-leader/set-key "wsj" 'split-window-below-focus-and-scratch)
+(evil-leader/set-key "wsk" 'split-window-above-focus-and-scratch)
+(evil-leader/set-key "wsl" 'split-window-right-focus-and-scratch)
+#+END_SRC
+
+close current window
+#+Begin_SRC emacs-lisp :results none
+(which-key-declare-prefixes "SPC wd" "delete")
+(evil-leader/set-key "wdd" 'delete-window)
+#+END_SRC
+
+close windows by number
+#+Begin_SRC emacs-lisp :results none
+(evil-leader/set-key "wd0" (lambda () (interactive) (select-window-0 1)))
+(evil-leader/set-key "wd1" (lambda () (interactive) (select-window-1 1)))
+(evil-leader/set-key "wd2" (lambda () (interactive) (select-window-2 1)))
+(evil-leader/set-key "wd3" (lambda () (interactive) (select-window-3 1)))
+(evil-leader/set-key "wd4" (lambda () (interactive) (select-window-4 1)))
+(evil-leader/set-key "wd5" (lambda () (interactive) (select-window-5 1)))
+(evil-leader/set-key "wd6" (lambda () (interactive) (select-window-6 1)))
+(evil-leader/set-key "wd7" (lambda () (interactive) (select-window-7 1)))
+(evil-leader/set-key "wd8" (lambda () (interactive) (select-window-8 1)))
+(evil-leader/set-key "wd9" (lambda () (interactive) (select-window-9 1)))
+#+END_SRC
+
+swap windows
+#+Begin_SRC emacs-lisp :results none
+(defun swap-window-by-number (i)
+  "Swap the buffer in the active window and the buffer in the given window"
+  (interactive "P")
+  (setq currentWindow (window-numbering-get-number))
+  (setq currentBuffer (current-buffer))
+  (select-window-by-number i)
+  (setq otherBuffer (current-buffer))
+  (switch-to-buffer currentBuffer)
+  (select-window-by-number currentWindow)
+  (switch-to-buffer otherBuffer))
+
+(which-key-declare-prefixes "SPC wS" "Swap")
+(evil-leader/set-key "wS0" (lambda () (interactive) (swap-window-by-number 0)))
+(evil-leader/set-key "wS1" (lambda () (interactive) (swap-window-by-number 1)))
+(evil-leader/set-key "wS2" (lambda () (interactive) (swap-window-by-number 2)))
+(evil-leader/set-key "wS3" (lambda () (interactive) (swap-window-by-number 3)))
+(evil-leader/set-key "wS4" (lambda () (interactive) (swap-window-by-number 4)))
+(evil-leader/set-key "wS5" (lambda () (interactive) (swap-window-by-number 5)))
+(evil-leader/set-key "wS6" (lambda () (interactive) (swap-window-by-number 6)))
+(evil-leader/set-key "wS7" (lambda () (interactive) (swap-window-by-number 7)))
+(evil-leader/set-key "wS8" (lambda () (interactive) (swap-window-by-number 8)))
+(evil-leader/set-key "wS9" (lambda () (interactive) (swap-window-by-number 9)))
+#+END_SRC
+
+** Resize-Window
+resize windows in emacs without using your pointer!
+and ofc you can use HJLK instead of the default keys (BPNF)
+#+BEGIN_SRC emacs-lisp :results none
+(use-package resize-window
+  :config
+  (which-key-add-key-based-replacements "SPC r" "Resize")
+  (evil-leader/set-key "wr" 'resize-window)
+  (push '(?h ?b) resize-window-alias-list)
+  (push '(?H ?B) resize-window-alias-list)
+  (push '(?j ?p) resize-window-alias-list)
+  (push '(?J ?P) resize-window-alias-list)
+  (push '(?k ?n) resize-window-alias-list)
+  (push '(?K ?N) resize-window-alias-list)
+  (push '(?l ?f) resize-window-alias-list)
+  (push '(?L ?F) resize-window-alias-list))
+#+END_SRC
+
+* Layout
+** Themes
+ fix ugly seperators on osx
+ #+Begin_SRC emacs-lisp :results none
+ ;(load "~/Downloads/my-eink-theme.el")
+ ;(setq ns-use-srgb-colorspace nil)
+#+END_SRC
+ #+BEGIN_SRC emacs-lisp :results none
+    (use-package leuven-theme
+    :pin melpa
+    :ensure t)
+    (load-theme 'leuven t)
+    ;(load-theme 'leuven-dark t)
+(setq ns-use-srgb-colorspace nil)
+;;   (use-package all-the-icons)
+   ;(use-package zerodark-theme)
+   ;init (zerodark-setup-modeline-format))
+
+ #+END_SRC
+
+** Font
+ Install source code pro
+ #+BEGIN_SRC shell :tangle brew-install-apps.sh
+ brew tap caskroom/fonts
+ brew cask reinstall --require-sha font-source-code-pro
+ #+END_SRC
+
+ Set Source Code Pro as default font
+ #+BEGIN_SRC emacs-lisp :results none
+ (set-face-attribute 'default nil
+                     :family "Source Code Pro"
+                     :height 150
+                     :weight 'normal
+                     :width 'normal)
+ #+END_SRC
+
+https://github.com/kitschysynq/sqwr-web/blob/master/fonts/Purisa.ttf
+#+BEGIN_SRC emacs-lisp :results none
+  ;; (add-hook 'org-mode-hook (lambda ()
+  ;;                             (setq buffer-face-mode-face '(:family "Purisa"))
+  ;;                             (buffer-face-mode)))
+#+END_SRC
+
+** Powerline
+#+Begin_SRC emacs-lisp
+  (use-package spaceline-config
+    :ensure spaceline
+    :ensure spaceline-all-the-icons
+    :config
+
+    (defun window-is-bottom-right (window)
+    (and  window
+         (eq (window-in-direction 'right window nil -1 nil nil) nil)
+         (eq (window-in-direction 'below window nil -1 nil nil) nil)))
+
+    (spaceline-define-segment mu4e-alert-segment
+    "Show the number of unread mails using mu. Requires mu4e-alert"
+    (when (and t (featurep 'mu4e-alert))
+    mu4e-alert-mode-line)
+    :global-override ((:eval mu4e-alert-mode-line)))
+
+    (spaceline-all-the-icons-theme)
+    (defun spaceline--theme (left second-left &rest additional-segments)
+      "Convenience function for the spacemacs and emacs themes."
+      (spaceline-install
+  ;;;;;;;;left
+        `(,left
+          ((all-the-icons-window-number
+          (evil-state :when active)
+          all-the-icons-modified))
+          ((all-the-icons-mode-icon
+          all-the-icons-buffer-id ;schrift dicker machen?!
+          all-the-icons-vc-icon
+          all-the-icons-vc-status))
+          (anzu :priority 4)
+          auto-compile
+          ,second-left
+          ;;major-mode
+          (process :when active)
+          ((flycheck-error flycheck-warning flycheck-info) ;muss ich mal schauen, was es da alles gibt/was man wirklich haben will
+           :when active
+           :priority 3)
+          ;(minor-modes :when active)
+          ;(mu4e-alert-segment :when active)
+          (erc-track :when active)
+          ;(version-control :when active
+          ;                 :priority 7)
+          (org-pomodoro :when active)
+          (org-clock :when active)
+          nyan-cat)
+  ;;;;;;;;;;;;right
+        `(
+          which-function
+          (python-pyvenv :fallback python-pyenv)
+          purpose
+          (battery :when active)
+          (selection-info :priority 2)
+          input-method
+          ((
+            ;;buffer-encoding-abbrev
+            (point-position :when active)
+            (line-column :when active))
+           :separator " | "
+           :priority 3)
+          (global :when active)
+          ,@additional-segments
+          ((buffer-position :when active :priority 0))
+          ((mu4e-alert-segment all-the-icons-time)
+          :when (window-is-bottom-right (get-buffer-window))
+          :tight t)
+          ;;(hud :priority 0)
+          ))
+      (setq-default mode-line-format '("%e" (:eval (spaceline-ml-main))))))
+    (spaceline--theme nil nil)
+    (setq spaceline-highlight-face-func 'spaceline-highlight-face-evil-state)
+    (setq spaceline-all-the-icons-icon-set-window-numbering 'string)
+#+END_SRC
+
+
+colors for mode-line, powerline1 and powerline2
+#+Begin_SRC emacs-lisp
+(set-face-attribute 'mode-line nil
+                    :foreground "#FFFFFF"
+                    :background "#848484"
+                    :box nil)
+(set-face-attribute 'mode-line-inactive nil
+                    :foreground "#FFFFFF"
+                    :background "#D4D4D4"
+                    :box nil)
+
+(set-face-attribute 'powerline-active1 nil
+                    :foreground "#FFFFFF"
+                    :background "#848484"
+                    :box nil)
+(set-face-attribute 'powerline-inactive1 nil
+                    :foreground "#FFFFFF"
+                    :background "#D4D4D4"
+                    :box nil)
+
+(set-face-attribute 'powerline-active2 nil
+                    :foreground "#FFFFFF"
+                    :background "#848484"
+                    :box nil)
+(set-face-attribute 'powerline-inactive2 nil
+                    :foreground "#FFFFFF"
+                    :background "#D4D4D4"
+                    :box nil)
+#+END_SRC
+
+#+RESULTS:
+
+* Smoot-scrolling
+#+Begin_SRC emacs-lisp :results none
+(use-package smooth-scrolling
+  :config
+  (setq smooth-scroll-margin 15)
+  (smooth-scrolling-mode 1))
+#+END_SRC
+
+* Magit
+git client for emacs
+#+Begin_SRC emacs-lisp :results none
+    (use-package magit
+    :config (progn
+              (use-package evil-magit)
+              (use-package git-timemachine)
+
+              ;; ;; git-gutter does not work with linenum-relativ-mode
+              ;; (use-package git-gutter
+              ;;   ;; show diff hunks in gutter + stage/unstage from buffer
+              ;;   :diminish git-gutter-mode
+              ;;   :config (progn
+              ;;            ; (bind-keys
+              ;;            ;  ("C-x C-g C-n" . git-gutter:next-hunk)
+              ;;            ;  ("C-x C-g C-p" . git-gutter:previous-hunk)
+              ;;            ;  ("C-x C-g C-s" . git-gutter:stage-hunk)
+              ;;            ;  ("C-x C-g C-r" . git-gutter:revert-hunk))
+              ;;             (global-git-gutter-mode)))
+
+              ;; git-gutter-fringe works fine with linenumbers
+              ;; but you can not stage hunks directly from the buffer
+  ;            (use-package git-gutter-fringe)
+              (setq magit-auto-revert-mode t)
+              (use-package magit-gitflow) ; brew install git-flow
+              (add-hook 'magit-mode-hook 'magit-load-config-extensions)))
+#+END_SRC
+
+** Keybindings
+use evil-leader to avoid Ctrl/Meta
+#+Begin_SRC emacs-lisp :results none
+(which-key-declare-prefixes "SPC g" "Git")
+(evil-leader/set-key "gs" 'magit-status
+                     "gb" 'magit-blame)
+#+END_SRC
+
+* ido-Mode
+  i will keep using ido for find-files
+#+Begin_SRC emacs-lisp :results none
+(use-package ido
+  :ensure ido-vertical-mode
+  :init (ido-mode 1)
+        (ido-vertical-mode 1)
+        (setq ido-enable-flex-matching t))
+#+END_SRC
+
+evil-like keybindings in ido
+#+Begin_SRC emacs-lisp :results none
+(add-hook 'ido-setup-hook
+  (lambda ()
+    (define-key ido-completion-map (kbd "C-h") 'ido-up-directory)
+    (define-key ido-completion-map (kbd "C-j") 'ido-next-match)
+    (define-key ido-completion-map (kbd "<tab>") 'ido-next-match)
+    (define-key ido-completion-map (kbd "C-k") 'ido-prev-match)
+    (define-key ido-completion-map (kbd "C-l") 'ido-exit-minibuffer)))
+#+END_SRC
+
+highlighted trailing whitespace is also annoying in ido-mode
+line numbers are annoying too
+#+Begin_SRC emacs-lisp :results none
+(add-hook 'ido-minibuffer-setup-hook (lambda () (setq show-trailing-whitespace nil)))
+#+END_SRC
+
+* Helm
+#+BEGIN_SRC emacs-lisp :results none
+(use-package helm
+  :diminish helm-mode
+  :init
+  :config
+ ; (define-key helm-map (kbd "<tab>") 'helm-next-line)
+ ; (define-key helm-map (kbd "C-i") 'helm-next-line);tab in terminal
+  (define-key helm-map (kbd "C-j") 'helm-next-line)
+  (define-key helm-map (kbd "C-k") 'helm-previous-line)
+  (setq helm-M-x-fuzzy-match t)
+  (helm-mode 1))
+#+END_SRC
+
+helm-ido-like
+#+BEGIN_SRC shell :results none
+cd ~/.emacs.d/contrib
+git clone https://github.com/compunaut/helm-ido-like-guide
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :results none
+(use-package helm-flx)
+(use-package helm-fuzzier)
+(require 'helm-ido-like "~/.emacs.d/contrib/helm-ido-like-guide/helm-ido-like.el")
+(helm-ido-like)
+#+END_SRC
+
+without this e.g. helm-mu not at the bottom
+#+BEGIN_SRC emacs-lisp :results none
+(use-package popwin)
+(setq helm-display-function 'popwin:pop-to-buffer)
+#+END_SRC
+
+* mails
+Mail stuff is privat
+#+BEGIN_SRC emacs-lisp
+(org-babel-load-file "~/.emacs.d/dotemacs-mail.org")
+#+END_SRC
+* pdfs
+** TODO pdftools
+:PROPERTIES:
+:CREATED:  [2017-10-22 So 19:58]
+:END:
+:LOGBOOK:
+- State "TODO"       from              [2017-10-22 So 19:58]
+  - macOS: not working missing brew
+:END:
+
+Install dependencies
+#+BEGIN_SRC sh :results none
+brew install poppler automake
+#+END_SRC
+
+Emacs will ask you to build a server. Typ 'y'. -> You will get an
+error. Restarting emacs works for me.
+# +BEGIN_SRC emacs-lisp :results none
+(use-package pdf-tools
+  :init
+  ;slows startup down
+   (pdf-tools-install)
+  :mode (("\\.pdf$" . pdf-view-mode))
+  :config
+;  (add-hook 'pdf-view-mode-hook (lambda () (linum-relative-mode -1)))
+  (add-hook 'pdf-view-mode-hook 'pdf-tools-enable-minor-modes)
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools")))
+  (setq TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view)))
+  (setq TeX-source-correlate-start-server t)
+  (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer)
+#+END_SRC
+
+evil-keybindings
+# +BEGIN_SRC emacs-lisp :results none
+(evil-set-initial-state 'pdf-view-mode 'normal)
+(evil-make-overriding-map pdf-view-mode-map 'normal t)
+(evil-define-key 'normal pdf-view-mode-map "j" 'pdf-view-next-line-or-next-page)
+(evil-define-key 'normal pdf-view-mode-map "J" 'pdf-view-next-page-command)
+(evil-define-key 'normal pdf-view-mode-map "k" 'pdf-view-previous-line-or-previous-page)
+(evil-define-key 'normal pdf-view-mode-map "K" 'pdf-view-previous-page-command)
+(evil-define-key 'normal pdf-view-mode-map "G" 'pdf-view-last-page)
+(evil-define-key 'normal pdf-view-mode-map "gg" 'pdf-view-first-page)
+(evil-define-key 'normal pdf-view-mode-map "t" 'pdf-view-midnight-minor-mode)
+(evil-define-key 'normal pdf-view-mode-map "/" 'isearch-forward)
+(evil-define-key 'normal pdf-view-mode-map "?" 'isearch-backward))
+#+END_SRC
+
+Open file:/path/to/pdf.pdf::2 at page 2
+# +BEGIN_SRC emacs-lisp :results none
+  (use-package org-pdfview)
+  (eval-after-load 'org '(require 'org-pdfview))
+  (delete '("\\.pdf\\'" . default) org-file-apps)
+  (add-to-list 'org-file-apps '("\\.pdf\\'" . (lambda (file link) (org-pdfview-open link))))
+  (add-to-list 'org-file-apps '("\\.pdf::\\(\\d+\\)\\'" . (lambda (file link) (org-pdfview-open link))))
+  ;(add-to-list 'org-file-apps '("\\.pdf\\'" . (org-pdfview-open link)))
+  ;(add-to-list 'org-file-apps '("\\.pdf::\\(\\d+\\)\\'" . (org-pdfview-open link)))
+#+END_SRC
+
+** interleave
+#+BEGIN_SRC emacs-lisp :results none
+(use-package interleave)
+#+END_SRC
+
+* org-mode
+#+BEGIN_SRC emacs-lisp :results none
+(use-package org
+:ensure org-plus-contrib
+  :init
+  (let ((my-org-modules
+         '(org-habit
+           ;org-bullets
+	   org-expiry
+	   org-contacts
+	   org-install
+	   org-mobile
+	   org-mu4e
+	   org-inlinetask
+	   org-secretary
+           org-drill
+           )))
+    (dolist (m my-org-modules)
+      (add-to-list 'org-modules m)))
+  :config
+  (mapc 'require org-modules)
+
+;; Open /.org/ with orgmode as major mode
+(add-to-list 'auto-mode-alist '("\\.\\(org\\|org_archive\\|txt\\)$" . org-mode))
+
+;; turn on org-indent mode
+(add-hook 'org-mode-hook 'org-indent-mode)
+
+;; this is the org default (changed by scimax)
+(setq org-archive-location "%s_archive::")
+
+;; (Standard) key bindings
+(global-set-key "\C-cl" 'org-store-link)
+(global-set-key "\C-ca" 'org-agenda)
+(global-set-key "\C-cb" 'org-iswitchb)
+(global-set-key (kbd "C-c g") (lambda() (interactive)(find-file "~/org/gtd.org")))
+
+;; make *** look nice
+;(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+
+
+;; default tags
+(setq org-tag-alist '(("@work" . ?w) ("@home" . ?h) ("@uni" . ?u) ("@essen" .?e)))
+
+
+;; todo dependencies
+;; * Parent
+;;   :PROPERTIES:
+;;   :ORDERED: t
+;;   :END:
+;; ** TODO a
+;; ** TODO b, needs to wait for (a)
+;; ** TODO c, needs to wait for (a) and (b)
+(setq org-enforce-todo-dependencies t)
+(setq org-agenda-dim-blocked-tasks t)
+;; just works jusing C-c C-t , not Shift left/right
+;; to ignore the dependencies use C-u C-u C-u C-c C-t
+;; use tag instead of properties
+;; (setq org-track-ordered-property-with-tag t)
+;; shortcut C-c C-x o
+
+; speed up agenda
+(setq org-agenda-inhibit-startup t) ;; ~50x speedup
+(setq org-agenda-use-tag-inheritance nil) ;; 3-4x speedup
+#+END_SRC
+
+** org-agenda and org-capture
+#+BEGIN_SRC emacs-lisp
+(org-babel-load-file "~/.emacs.d/dotemacs-orgmode.org")
+#+END_SRC
+
+*** Keybindings
+#+BEGIN_SRC emacs-lisp :results none
+(evil-leader/set-key "a" 'org-agenda)
+(evil-set-initial-state 'org-agenda-mode 'normal)
+(evil-define-key 'normal org-agenda-mode-map "d" '(lambda () (interactive) (org-agenda-todo "DONE")))
+(evil-define-key 'normal org-agenda-mode-map "t" '(lambda () (interactive) (org-agenda-todo "TODO")))
+(evil-define-key 'normal org-agenda-mode-map "c" '(lambda () (interactive) (org-agenda-todo "CANCELLED")))
+(evil-define-key 'normal org-agenda-mode-map "n" '(lambda () (interactive) (org-agenda-todo "NEXT")))
+(evil-define-key 'normal org-agenda-mode-map "w" '(lambda () (interactive) (org-agenda-todo "WAITING")))
+
+(evil-define-key 'normal org-agenda-mode-map "o" '(lambda () (interactive) (org-agenda-goto)))
+(evil-define-key 'normal org-agenda-mode-map "A" '(lambda () (interactive) (org-agenda-archive)))
+(evil-define-key 'normal org-agenda-mode-map "r" '(lambda () (interactive) (org-agenda-refile)))
+(evil-define-key 'normal org-agenda-mode-map "u" '(lambda () (interactive) (org-agenda-undo)))
+(evil-define-key 'normal org-agenda-mode-map "N" '(lambda () (interactive) (org-agenda-add-note)))
+(evil-define-key 'normal org-agenda-mode-map "v" '(lambda () (interactive) (org-agenda-view-mode-dispatch)))
+; : add tag
+; f follow mode
+; c capture
+; u update agenda, war vorher auf r
+; schedule
+; deatline
+; timestamps
+(evil-define-key 'normal org-agenda-mode-map "q" 'org-agenda-quit)
+#+END_SRC
+*** German layout
+#+BEGIN_SRC emacs-lisp :results none
+;; German calendar
+;; set up the calendar to look German
+;; system locale to use for formatting time values
+;; (setq system-time-locale "de_DE")
+;; (setq org-export-default-language "de")
+(setq calendar-week-start-day 1
+calendar-day-name-array ["Sonntag" "Montag" "Dienstag" "Mittwoch"
+                         "Donnerstag" "Freitag" "Samstag"]
+calendar-month-name-array ["Januar" "Februar" "März" "April" "Mai"
+                           "Juni" "Juli" "August" "September"
+                           "Oktober" "November" "Dezember"])
+;; Press H in agenda view so show holidays
+(setq solar-n-hemi-seasons
+      '("Frühlingsanfang" "Sommeranfang" "Herbstanfang" "Winteranfang"))
+
+(setq holiday-general-holidays
+      '((holiday-fixed 1 1 "Neujahr")
+        (holiday-fixed 5 1 "1. Mai")
+        (holiday-fixed 10 3 "Tag der Deutschen Einheit")))
+
+;; Feiertage für Bayern, weitere auskommentiert
+(setq holiday-christian-holidays
+      '((holiday-float 12 0 -4 "1. Advent" 24)
+        (holiday-float 12 0 -3 "2. Advent" 24)
+        (holiday-float 12 0 -2 "3. Advent" 24)
+        (holiday-float 12 0 -1 "4. Advent" 24)
+        (holiday-fixed 12 25 "1. Weihnachtstag")
+        (holiday-fixed 12 26 "2. Weihnachtstag")
+        (holiday-fixed 1 6 "Heilige Drei Könige")
+        (holiday-easter-etc -48 "Rosenmontag")
+        ;; (holiday-easter-etc -3 "Gründonnerstag")
+        (holiday-easter-etc  -2 "Karfreitag")
+        (holiday-easter-etc   0 "Ostersonntag")
+        (holiday-easter-etc  +1 "Ostermontag")
+        (holiday-easter-etc +39 "Christi Himmelfahrt")
+        (holiday-easter-etc +49 "Pfingstsonntag")
+        (holiday-easter-etc +50 "Pfingstmontag")
+        (holiday-easter-etc +60 "Fronleichnam")
+        (holiday-fixed 8 15 "Mariae Himmelfahrt")
+        (holiday-fixed 11 1 "Allerheiligen")
+        ;; (holiday-float 11 3 1 "Buss- und Bettag" 16)
+        (holiday-float 11 0 1 "Totensonntag" 20)))
+#+END_SRC
+
+** todo Stuff
+#+BEGIN_SRC emacs-lisp :results none
+ ;; todo keywords and faces
+ (setq org-todo-keyword-faces
+       (quote (("TODO" :foreground "red" :weight bold)
+               ("PROJECT" :foreground "red" :weight bold)
+               ("STARTED" :foreground "blue" :weight bold)
+               ("NEXT" :foreground "blue" :weight bold)
+               ("WAITING" :foreground "orange" :weight bold)
+               ("DELEGATED" :foreground "orange" :weight bold)
+               ("CANCELLED" :foreground "forest green" :weight bold)
+               ("DONE" :foreground "Forest green" :weight bold)
+               ("SOMEDAY" :foreground "blue" :weight bold)
+               ("REF" :foreground "blue" :weight bold))))
+#+END_SRC
+
+*** Evil-Keybindings
+while in major-mode org
+#+Begin_SRC emacs-lisp :results none
+(evil-leader/set-key-for-mode 'org-mode "s" 'org-schedule)
+(evil-leader/set-key-for-mode 'org-mode "D" 'org-deadline)
+(evil-leader/set-key-for-mode 'org-mode "tt" (lambda () (interactive) (org-todo "TODO")))
+(which-key-add-key-based-replacements "SPC tt" "mark as TODO")
+
+(evil-leader/set-key-for-mode 'org-mode "tp" (lambda () (interactive) (org-todo "PROJECT")))
+(which-key-add-key-based-replacements "tp" "mark as PROJECT")
+
+(evil-leader/set-key-for-mode 'org-mode "tn" (lambda () (interactive) (org-todo "NEXT")))
+(which-key-add-key-based-replacements "tn" "mark as NEXT")
+
+(evil-leader/set-key-for-mode 'org-mode "ts" (lambda () (interactive) (org-todo "STARTED")))
+(which-key-add-key-based-replacements "ts" "mark as STARTED")
+
+(evil-leader/set-key-for-mode 'org-mode "tw" (lambda () (interactive) (org-todo "WAITING")))
+(which-key-add-key-based-replacements "tw" "mark as WAITING")
+
+(evil-leader/set-key-for-mode 'org-mode "td" (lambda () (interactive) (org-todo "DELEGATED")))
+(which-key-add-key-based-replacements "ta" "mark as DELGATED")
+
+(evil-leader/set-key-for-mode 'org-mode "td" (lambda () (interactive) (org-todo "DONE")))
+(which-key-add-key-based-replacements "td" "mark as DONE")
+
+(evil-leader/set-key-for-mode 'org-mode "tc" (lambda () (interactive) (org-todo "CANCELLED")))
+(which-key-add-key-based-replacements "tc" "mark as CANCELED")
+
+(evil-leader/set-key-for-mode 'org-mode "tr" (lambda () (interactive) (org-todo "REF")))
+(which-key-add-key-based-replacements "tr" "mark as REF")
+
+(evil-leader/set-key-for-mode 'org-mode "tm" (lambda () (interactive) (org-todo "SOMEDAY")))
+(which-key-add-key-based-replacements "tm" "mark as SOMEDAY")
+
+(evil-leader/set-key-for-mode 'org-mode "A" 'org-archive-subtree-default)
+(which-key-add-key-based-replacements "A" "archiv subtree")
+#+END_SRC
+
+** Logging and clocking
+#+BEGIN_SRC emacs-lisp :results none
+;; log when a todo was created
+;; (require 'org-expiry) ; see org-modules
+(org-expiry-insinuate)
+(setq org-expiry-inactive-timestamps t)
+
+;; log reschedule and redeadline in LOGBOOK
+(setq org-log-reschedule t)
+(setq org-log-redeadline t)
+
+;; Change Todo status with shortcut
+;; ! add a timestamp to the LOOGBOOK
+;; @ claims for a short note that will be add to the LOOGBOOK
+(setq org-use-fast-todo-selection t)
+;; (setq org-todo-keywords '((type "TODO(t!)" "NEXT(n!)" "STARTED(s!)" "WAITING(w@)" "DELEGATED(a@)" "|" "REF(r@)" "|" "DONE(d!)" "CANCELLED(c@)")))
+(setq org-todo-keywords '((type "PROJECT(p)" "TODO(t!)" "NEXT(n!)" "STARTED(s!)" "WAITING(w@)" "DELEGATED(a@)" "|" "DONE(d!)" "CANCELLED(c@)" "REF(r@)" "SOMEDAY(m!)")))
+(setq org-log-into-drawer t)
+
+
+
+
+;; clocking
+;; clockreport
+;; Show clockreport in agendaview with v R
+;; Dont show empty files and link to files:
+(setq org-agenda-clockreport-parameter-plist
+ (quote (:link t :fileskip0 t :stepskip0 t :compact t :narrow 80 :maxlevel 5)))
+
+;; [[https://emacs.stackexchange.com/questions/9528/is-it-possible-to-remove-emsp-from-clock-report-but-preserve-indentation][Dont show \emph]]
+(defun my-org-clocktable-indent-string (level)
+  (if (= level 1)
+      ""
+    (let ((str "^"))
+      (while (> level 2)
+        (setq level (1- level)
+              str (concat str "--")))
+      (concat str "-> "))))
+(advice-add 'org-clocktable-indent-string :override #'my-org-clocktable-indent-string)
+#+END_SRC
+
+*** org-clock history
+
+#+BEGIN_SRC emacs-lisp :results none
+  (use-package org-mru-clock
+    :defer t
+    :bind* (("C-c C-x i" . org-mru-clock-in)
+            ("C-c C-x C-j" . org-mru-clock-select-recent-task))
+    :init
+    (setq org-mru-clock-how-many 100))
+#+END_SRC
+
+** mobile org
+#+BEGIN_SRC emacs-lisp :results none
+;; ** mobile org
+ ;; begin mac einstellungen
+(setq org-directory "~/org/")
+(setq org-mobile-directory "~/share/oc-essen/orgmobile/")
+;;(setq org-mobile-agenda-files (quote ("~/org/gtd.org")))
+;;(setq org-mobile-inbox-for-pull "~/org/gtd.org")
+(setq org-mobile-inbox-for-pull "~/share/oc-essen/mobile-inbox.org")
+;; einstellungen auf dem handy:
+;; webdav: url: https://XXX.selfhost.de:5006/home/CloudStation/orgmobile/index.org
+;; Username und Password: vom Synology-User matthias
+;; end mac einstellungen
+
+;; fuer ds in essen
+;; https://ds.XXX.org/owncloud/remote.php/webdav/orgmobile/index.org
+(add-hook 'org-finalize-agenda-hook 'org-mobile-pull)
+
+;; http://www.emacswiki.org/emacs/mobileorg
+(defun my-org-convert-incoming-items ()
+  (interactive)
+  (with-current-buffer (find-file-noselect org-mobile-inbox-for-pull)
+    (goto-char (point-min))
+    (while (re-search-forward "^\\* " nil t)
+      (goto-char (match-beginning 0))
+      (insert ?*)
+      (forward-char 2)
+      (insert "TODO ")
+      (goto-char (line-beginning-position))
+      (forward-line))))
+
+(add-hook 'org-mobile-post-pull-hook 'my-org-convert-incoming-items)
+#+END_SRC
+
+** refile
+#+BEGIN_SRC emacs-lisp :results none
+;; refile
+(defun ixp/org-buffer-files ()
+  "Return list of opened orgmode buffer files"
+  (mapcar (function buffer-file-name)
+	  (org-buffer-list 'files)))
+
+(setq org-refile-targets
+      (quote ((nil :maxlevel . 9)
+          (ixp/org-buffer-files :maxlevel . 1)
+          (org-agenda-files :maxlevel . 9))))
+#+END_SRC
+
+*************** TODO Add helm
+*************** END
+
+** org-contacts
+#+BEGIN_SRC emacs-lisp :results none
+;; ** org-contacts
+(setq org-contacts-files '("~/org/contacts.org"))
+
+;; set it in elpa/org-plus-contrib/org-contacts.el !!!
+;;(custom-set-variables
+;; '(org-contacts-email-property "EMAIL_HOME")
+;; '(org-contacts-birthday-property "BORN")
+;; )
+
+(setq org-link-abbrev-alist
+      '(
+        ("contact" . "~/org/contacts.org::/\*.*%s/")
+;;	("tsfile" . "~/org-mode/files.org_archive::/\*.*%s/")
+	))
+#+END_SRC
+
+** babel
+#+BEGIN_SRC emacs-lisp :results none
+(use-package htmlize)
+;; use syntax highlighting in org-mode source blocks
+(setq org-src-fontify-natively t)
+
+; active Babel languages
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '(
+  (python . t)
+;;  (ruby . t)
+ (gnuplot . t)
+  (shell . t)
+  (org . t)
+;; (R . t) ;; using this gives me an error
+  (emacs-lisp .t)
+;;  (ditaa . t)
+;;  (dot . t)
+;;  (sql . t)
+  (matlab . t)
+  (plantuml .t)
+  (latex .t)
+  ))
+
+(setq org-babel-python-command "/usr/local/bin/python3")
+(setq org-plantuml-jar-path
+      (expand-file-name "~/.emacs.d/contrib/plantuml.jar"))
+; brew install graphviz
+
+;; do not run the code every time
+(setq org-export-babel-evaluate t)
+#+end_src
+
+** org-reveal
+clone reveal into your home directory
+#+begin_src sh
+cd ~
+git clone https://github.com/hakimel/reveal.js.git
+#+end_src
+
+#+begin_src emacs-lisp :results none
+;(use-package ox-reveal)
+
+(add-to-list 'load-path "~/.emacs.d/contrib/org-reveal")
+(require 'ox-reveal)
+;; (setq org-reveal-root "file:///home/ms/.emacs.d/reveal.js") ;; ~ not working! ; path for linux
+(setq org-reveal-root "file:///Users/ms/.emacs.d/reveal.js")
+#+end_src
+
+** org-pomodoro
+#+BEGIN_SRC emacs-lisp :results none
+(use-package org-pomodoro)
+#+END_SRC
+
+** org-LaTeX
+
+Increase LaTeX scale when increasing text scale
+After increasing the text scale it is necessart to toggle the fragment again.
+Otherwise this will take a wile if there are lots of fragments in a buffer
+
+http://emacs.stackexchange.com/questions/3387/how-to-enlarge-latex-fragments-in-org-mode-at-the-same-time-as-the-buffer-text
+#+BEGIN_SRC emacs-lisp :results none
+(defun update-org-latex-fragment-scale ()
+  (let ((text-scale-factor (expt text-scale-mode-step text-scale-mode-amount)))
+    (plist-put org-format-latex-options :scale (* 2.3 text-scale-factor)))
+)
+(add-hook 'text-scale-mode-hook 'update-org-latex-fragment-scale)
+#+END_SRC
+
+Set org-latex fragment brackground to transparent.
+#+BEGIN_SRC emacs-lisp :results none
+(setq org-format-latex-options (plist-put org-format-latex-options :background "Transparent"))
+#+END_SRC
+
+** End of org-mode
+#+BEGIN_SRC emacs-lisp :results none
+) ; end of use-package org-mode
+#+END_SRC
+** org-archive-subtree-hierachical
+https://stackoverflow.com/questions/10143959/keeping-the-context-when-archiving-in-emacs-org-mode
+#+BEGIN_SRC emacs-lisp :results none
+;; org-archive-subtree-hierarchical.el
+;; modified from https://lists.gnu.org/archive/html/emacs-orgmode/2014-08/msg00109.html
+
+;; In orgmode
+;; * A
+;; ** AA
+;; *** AAA
+;; ** AB
+;; *** ABA
+;; Archiving AA will remove the subtree from the original file and create
+;; it like that in archive target:
+
+;; * AA
+;; ** AAA
+
+;; And this give you
+;; * A
+;; ** AA
+;; *** AAA
+
+
+(require 'org-archive)
+
+(defun org-archive-subtree-hierarchical--line-content-as-string ()
+  "Returns the content of the current line as a string"
+  (save-excursion
+    (beginning-of-line)
+    (buffer-substring-no-properties
+     (line-beginning-position) (line-end-position))))
+
+(defun org-archive-subtree-hierarchical--org-child-list ()
+  "This function returns all children of a heading as a list. "
+  (interactive)
+  (save-excursion
+    ;; this only works with org-version > 8.0, since in previous
+    ;; org-mode versions the function (org-outline-level) returns
+    ;; gargabe when the point is not on a heading.
+    (if (= (org-outline-level) 0)
+        (outline-next-visible-heading 1)
+      (org-goto-first-child))
+    (let ((child-list (list (org-archive-subtree-hierarchical--line-content-as-string))))
+      (while (org-goto-sibling)
+        (setq child-list (cons (org-archive-subtree-hierarchical--line-content-as-string) child-list)))
+      child-list)))
+
+(defun org-archive-subtree-hierarchical--org-struct-subtree ()
+  "This function returns the tree structure in which a subtree
+belongs as a list."
+  (interactive)
+  (let ((archive-tree nil))
+    (save-excursion
+      (while (org-up-heading-safe)
+        (let ((heading
+               (buffer-substring-no-properties
+                (line-beginning-position) (line-end-position))))
+          (if (eq archive-tree nil)
+              (setq archive-tree (list heading))
+            (setq archive-tree (cons heading archive-tree))))))
+    archive-tree))
+
+(defun org-archive-subtree-hierarchical ()
+  "This function archives a subtree hierarchical"
+  (interactive)
+  (let ((org-tree (org-archive-subtree-hierarchical--org-struct-subtree))
+        (this-buffer (current-buffer))
+        (file (abbreviate-file-name
+               (or (buffer-file-name (buffer-base-buffer))
+                   (error "No file associated to buffer")))))
+    (save-excursion
+      (setq location (org-get-local-archive-location)
+            afile (org-extract-archive-file location)
+            heading (org-extract-archive-heading location)
+            infile-p (equal file (abbreviate-file-name (or afile ""))))
+      (unless afile
+        (error "Invalid `org-archive-location'"))
+      (if (> (length afile) 0)
+          (setq newfile-p (not (file-exists-p afile))
+                visiting (find-buffer-visiting afile)
+                buffer (or visiting (find-file-noselect afile)))
+        (setq buffer (current-buffer)))
+      (unless buffer
+        (error "Cannot access file \"%s\"" afile))
+      (org-cut-subtree)
+      (set-buffer buffer)
+      (org-mode)
+      (goto-char (point-min))
+      (while (not (equal org-tree nil))
+        (let ((child-list (org-archive-subtree-hierarchical--org-child-list)))
+          (if (member (car org-tree) child-list)
+              (progn
+                (search-forward (car org-tree) nil t)
+                (setq org-tree (cdr org-tree)))
+            (progn
+              (goto-char (point-max))
+              (newline)
+              (org-insert-struct org-tree)
+              (setq org-tree nil)))))
+      (newline)
+      (org-yank)
+      (when (not (eq this-buffer buffer))
+        (save-buffer))
+      (message "Subtree archived %s"
+               (concat "in file: " (abbreviate-file-name afile))))))
+
+(defun org-insert-struct (struct)
+  "TODO"
+  (interactive)
+  (when struct
+    (insert (car struct))
+    (newline)
+    (org-insert-struct (cdr struct))))
+
+(defun org-archive-subtree ()
+  (org-archive-subtree-hierarchical)
+  )
+
+(which-key-declare-prefixes "SPC o" "org")
+(evil-leader/set-key "oa" 'org-archive-subtree-hierarchical)
+#+END_SRC
+* org-ref
+
+
+#+begin_src emacs-lisp
+  (use-package org-ref
+    :after org
+    :init
+
+; use * REF instead of ** TODO
+(defcustom org-ref-note-title-format
+  "* REF %y - %t
+ :PROPERTIES:
+  :Custom_ID: %k
+  :AUTHOR: %9a
+  :JOURNAL: %j
+  :YEAR: %y
+  :VOLUME: %v
+  :PAGES: %p
+  :DOI: %D
+  :URL: %U
+ :END:
+"
+  "String to format the title and properties drawer of a note.
+See the `org-ref-reftex-format-citation' docstring for the escape
+codes."
+  :type 'string
+:group 'org-ref)
+
+    (setq reftex-default-bibliography '("~/studium/research/ms-refs.bib"))
+    (setq org-ref-bibliography-notes "~/studium/research/notes.org"
+          org-ref-default-bibliography '("~/studium/research/ms-refs.bib")
+          org-ref-pdf-directory "~/studium/research/papers/")
+
+;   (setq bibtex-completion-bibliography "~/studium/research/ms-refs.bib"
+;         bibtex-completion-library-path "~/studium/research/papers"
+;	 bibtex-completion-notes-path "~/Dropbox/bibliography/helm-bibtex-notes")
+
+
+    (setq helm-bibtex-notes-path "~/studium/research/notes.org")
+    :config
+    (key-chord-define-global "uu" 'org-ref-cite-hydra/body)
+
+;: TODO -> LaTeX
+;  (setq org-latex-pdf-process
+;   '("pdflatex -interaction nonstopmode -output-directory %o %f"
+;     "bibtex %b"
+;     "makeglossaries %b"
+;     "pdflatex -interaction nonstopmode -output-directory %o %f"
+;     "pdflatex -interaction nonstopmode -output-directory %o %f"))
+
+  )
+#+end_src
+
+#+RESULTS:
+: t
+
+* python
+
+brew install python
+brew install python3
+pip3 install --upgrade pip
+pip install virtualenv
+pip3 install jedi flake8 importmagic autopep8 yapf
+
+$ python3 -m venv ~/.env/test
+$ source ~/.env/test/bin/activate
+
+python2 -m virtualenv ~/.env/memacs
+
+For python I will use elpy.
+
+#+BEGIN_SRC emacs-lisp :results none
+  (use-package elpy
+    :ensure t
+    :mode ("\\.py" . python-mode)
+    :init
+    (elpy-enable)
+    (setq python-shell-completion-native-enable nil)
+    ; stop ipython shell to be read only
+    (setq comint-prompt-read-only nil)
+    :config
+    (elpy-use-ipython "ipython3")
+    (setq elpy-rpc-python-command "python3")
+    (setq python-shell-interpreter "ipython3" python-shell-interpreter-args "--simple-prompt --pprint")
+
+    (when(require 'flycheck nil t)
+    (setq elpy-modules(delq 'elpy-module-flymake elpy-modules))
+    (add-hook 'elpy-mode-hook 'flycheck-mode))
+
+    (use-package py-autopep8)
+    (set-variable 'python-indent-guess-indent-offset nil)
+
+    (use-package virtualenvwrapper)
+    (venv-initialize-interactive-shells)
+    (venv-initialize-eshell)
+    (setq venv-location "/Users/ms/.env/")
+    )
+
+
+; (defun set-ipython-shell-writable()
+;   "Removes the read-only text property from the marked region."
+;   (interactive)
+;   (when (eq major-mode 'inferior-python-mode)
+;   (let ((modified (buffer-modified-p))
+;         (inhibit-read-only t))
+;     (remove-text-properties (point-min) (point-max) '(read-only t))
+;     (set-buffer-modified-p modified))
+;   ; (message "done") ; this is for debugging only
+;   ))
+; 
+; (run-with-timer 0 1 'set-ipython-shell-writable) ;; runs command every s
+;                                                  ;; TODO might be not the fastes option
+
+
+;)
+#+END_SRC
+
+** helm-pydoc
+#+BEGIN_SRC emacs-lisp :results none
+ (use-package helm-pydoc)
+#+END_SRC
+* Dired
+
+#+BEGIN_SRC emacs-lisp :results none
+(use-package dired
+:ensure dired-filter
+:ensure all-the-icons-dired
+;:ensure dired-collapse
+:ensure dired-ranger
+  :bind (:map dired-mode-map
+              ("W" . dired-ranger-copy)
+              ("X" . dired-ranger-move)
+              ("Y" . dired-ranger-paste))
+; rename file -> "R"
+
+;:ensure peep-dired
+;:config
+;(evil-define-key 'normal peep-dired-mode-map (kbd "P") 'peep-dired-scroll-page-down
+;                                             (kbd "C-P") 'peep-dired-scroll-page-up
+;                                             (kbd "<backspace>") 'peep-dired-scroll-page-up
+;                                             (kbd "j") 'peep-dired-next-file
+;                                             (kbd "k") 'peep-dired-prev-file)
+;(add-hook 'peep-dired-hook 'evil-normalize-keymaps)
+:config
+
+; use "(" to show/hide detail information about items and folders
+
+; dired filter
+; https://github.com/Fuco1/dired-hacks#dired-filter
+  ; map dired-filter-map to "f"
+  ; so "/" is still swiper
+  (setq dired-filter-prefix nil)
+  (define-key dired-mode-map (kbd "C-c f") dired-filter-map)
+  (evil-define-key 'normal dired-mode-map (kbd "f") dired-filter-map)
+  (evil-define-key 'normal dired-mode-map (kbd "F") dired-filter-mark-map)
+
+; nice symbols in dired
+(add-hook 'dired-mode-hook 'all-the-icons-dired-mode 'dired-hide-detail-mode)
+
+; dired ranger
+)
+#+END_SRC
+http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html
+#+begin_src emacs-lisp :results none
+(defun dired-open-in-external-app ()
+  "Open the current file or dired marked files in external app.
+The app is chosen from your OS's preference.
+
+URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
+Version 2015-01-26"
+  (interactive)
+  (let* (
+         (ξfile-list
+          (if (string-equal major-mode "dired-mode")
+              (dired-get-marked-files)
+            (list (buffer-file-name))))
+         (ξdo-it-p (if (<= (length ξfile-list) 5)
+                       t
+                     (y-or-n-p "Open more than 5 files? "))))
+
+    (when ξdo-it-p
+      (cond
+       ((string-equal system-type "windows-nt")
+        (mapc
+         (lambda (fPath)
+           (w32-shell-execute "open" (replace-regexp-in-string "/" "\\" fPath t t))) ξfile-list))
+       ((string-equal system-type "darwin")
+        (mapc
+         (lambda (fPath) (shell-command (format "open \"%s\"" fPath)))  ξfile-list))
+       ((string-equal system-type "gnu/linux")
+        (mapc
+         (lambda (fPath) (let ((process-connection-type nil)) (start-process "" nil "xdg-open" fPath))) ξfile-list))))))
+
+(evil-define-key 'normal dired-mode-map "a" 'dired-open-in-external-app)
+#+end_src
+
+#+begin_src emacs-lisp :results none
+(defun dired-open-in-desktop ()
+  "Show current file in desktop (OS's file manager).
+URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
+Version 2015-11-30"
+  (interactive)
+  (cond
+   ((string-equal system-type "windows-nt")
+    (w32-shell-execute "explore" (replace-regexp-in-string "/" "\\" default-directory t t)))
+   ((string-equal system-type "darwin") (shell-command "open ."))
+   ((string-equal system-type "gnu/linux")
+    (let (
+          (process-connection-type nil)
+          (openFileProgram (if (file-exists-p "/usr/bin/gvfs-open")
+                               "/usr/bin/gvfs-open"
+                             "/usr/bin/xdg-open")))
+      (start-process "" nil openFileProgram "."))
+    ;; (shell-command "xdg-open .") ;; 2013-02-10 this sometimes froze emacs till the folder is closed. ➢ for example: with nautilus
+    )))
+
+(evil-define-key 'normal dired-mode-map "d" 'dired-open-in-desktop)
+#+end_src
+
+http://superuser.com/questions/462079/how-can-i-display-folder-sizes-in-emacs-dired
+#+BEGIN_SRC emacs-lisp :results none
+ (defun dired-get-size ()
+  (interactive)
+  (let ((files (dired-get-marked-files)))
+    (with-temp-buffer
+      (apply 'call-process "/usr/bin/du" nil t nil "-sch" files)
+      (message "Size of all marked files: %s"
+               (progn
+                 (re-search-backward "\\(^[0-9.,]+[A-Za-z]+\\).*total$")
+                  (match-string 1))))))
+
+(evil-define-key 'normal dired-mode-map "?" 'dired-get-size)
+#+END_SRC
+
+** Evil in dired
+#+BEGIN_SRC emacs-lisp :results none
+(evil-leader/set-key "d" 'ido-dired)
+#+END_SRC
+
+i like to open stuff with 'o', so i switch 'o' and 'e' in dired
+#+Begin_SRC emacs-lisp :results none
+(evil-define-key 'normal dired-mode-map "o" 'dired-find-file)
+(evil-define-key 'normal dired-mode-map "e" 'dired-find-file-other-window)
+(evil-define-key 'normal dired-mode-map "v" 'evil-visual-char)
+#+END_SRC
+
+* emms
+#+BEGIN_SRC emacs-lisp :results none
+(use-package emms
+  :ensure t
+  :config
+  (require 'emms-info-libtag)
+  (progn
+    (emms-standard)
+    (emms-default-players)
+    (setq emms-playlist-buffer-name "Music-EMMS")
+    (setq emms-source-file-default-directory "~/ms-audio/music/")
+    ;;   Show the current track each time EMMS starts to play a track.
+    (add-hook 'emms-player-started-hook 'emms-show)
+    (setq emms-show-format "Playing: %s")
+    (defun play-smooth-jazz()
+      "Start up some nice Jazz"
+      (interactive)
+      (emms-play-streamlist "http://thejazzgroove.com/itunes.pls"))
+    (defun play-brassmusic()
+      "Start up some nice brass music"
+      (interactive)
+      (emms-play-streamlist "http://cloudrad.io/allbrassradio/listen.pls")))
+  )
+#+END_SRC
+
+* Elfeed
+#+BEGIN_SRC emacs-lisp :results none
+(use-package elfeed
+  :load-path "~/.emacs.d/contrib/elfeed-org/"
+  :ensure elfeed-org
+  :bind ("C-x w" . elfeed)
+  :init (setf url-queue-timeout 30)
+  ; :init
+  (evil-leader/set-key "e" 'elfeed)
+  ; mappings for entry list
+  (evil-define-key 'normal elfeed-search-mode-map
+  ;; show entry default RET
+  "o" 'elfeed-search-show-entry
+  ;; fetch feed updates; default: G
+  "U" 'elfeed-update
+  ;; filter
+  "f" 'elfeed-search-live-filter
+  ;; reset to default filter
+  "F" '(lambda () (interactive) (elfeed-search-set-filter "@2-days-ago +unread "))
+  ;; open url in specified browser
+  "b" 'elfeed-search-browse-url
+  ;; read current entry or selected (remove unread tag)
+  "r" 'elfeed-search-untag-all-unread
+  ;; mark current entry or selected unread
+  "u" 'elfeed-search-tag-all-unread
+  ;; add a tag to current entry or selected
+  "+" 'elfeed-search-tag-all
+  ;; star entries to come back later to and do something about
+  "*" '(lambda () (interactive) (elfeed-search-toggle-all 'star)))
+
+  ;; mappings for when reading a post
+  (evil-define-key 'normal elfeed-show-mode-map
+  "b" 'elfeed-show-visit
+  "q" 'elfeed-kill-buffer
+  ;; next post
+  "n" 'elfeed-show-next
+  ;; previous post
+  "p" 'elfeed-show-prev
+  ;; add a tag to current entry
+  "a" 'elfeed-show-tag
+  "*" '(lambda () (interactive) (elfeed-search-toggle-all 'star))
+  ;; remove a tag from current entry
+  "d" 'elfeed-show-untag)
+
+  :config
+  (elfeed-org)
+  (setq rmh-elfeed-org-files (list "~/org/elfeed.org"))
+  (setq-default elfeed-search-filter "@2-day-ago +unread ")
+
+  (defalias 'elfeed-toggle-star
+    (elfeed-expose #'elfeed-search-toggle-all 'star))
+
+  (eval-after-load 'elfeed-search
+    '(define-key elfeed-search-mode-map (kbd "*") 'elfeed-toggle-star))
+  )
+#+END_SRC
+
+#+RESULTS:
+** elfeed-link
+
+ Code based on [[https://github.com/skeeto/elfeed/pull/128/commits/1e0bface059470d096bb6e36ba7b646d36e038e6][this PR]]
+ #+BEGIN_SRC emacs-lisp
+
+ ;;; elfeed-link.el --- Links to elfeed search and entry buffers, plus capturing for Org mode -*- lexical-binding: t; -*-
+ ;;
+ ;; This is free and unencumbered software released into the public domain.
+ ;;
+ ;;; Code:
+
+ (require 'org)
+ (require 'elfeed)
+ (require 'elfeed-db)
+ (require 'elfeed-show)
+ (require 'elfeed-search)
+
+ ;;;###autoload
+ (defun elfeed-link-store ()
+   "Store an Org link to the current elfeed search or entry buffer.
+
+ If point is on an http-style url in an entry buffer then that url
+ becomes the link for `org-store-link', otherwise it is an
+ 'elfeed:...' url which is handled by `elfeed'.
+
+ Special properties stored about entries which can be used by
+ `org-capture' templates:
+
+ %:url                     The http url of the entry
+ %:enclosure-url           The http url of the first enclosure, if present
+ %:feed-url                The http url to the html list of entries
+ %:feed-title              The title of the feed
+ %:description             The elfeed entry title
+ %:feed-author             The author of the feed
+ %:date-timestamp          The date the entry was published as an active Org date-time
+ %:date-timestamp-inactive The date the entry was published as an inactive Org date-time
+ %:tags                    The tags applied to the entry in Org 'tag1:tag2' format
+ "
+   (require 'org)
+   (cond ((eq major-mode 'elfeed-search-mode)
+          (org-store-link-props
+           :type "elfeed"
+           :link (format "elfeed:%s" elfeed-search-filter)
+           :description elfeed-search-filter))
+         ((eq major-mode 'elfeed-show-mode)
+          (let* ((entry elfeed-show-entry)
+                 (id (elfeed-entry-id entry))
+                ; (link (format "elfeed:%s#%s" (car id) (cdr id)))
+                ; Go to elfeed artikel, Store link with C-c l
+                ; paste link with C-c C-l
+                ; link will look like this:
+                ; [[elfeed:de.wikipedia.org#https://de.wikipedia.org/wiki/Spezial:Feedobjekt/featured/20170314000000/de][Am 14. März auf Wikipedia exzellenter Artikel]]
+                ; C-c C-o and elfeed will not find the articel becayse of 'de.wikipedia.org#'
+                ; so lets ignore this part
+                 (link (format "elfeed:%s" (cdr id)))
+                 ; tada, link looks correct now:
+                 ; [[elfeed:https://de.wikipedia.org/wiki/Spezial:Feedobjekt/featured/20170314000000/de][Am 14. März auf Wikipedia exzellenter Artikel]]
+                 (thing-url (get-text-property (point) 'shr-url))
+                 (thing-type (and thing-url
+                                  (url-type (url-generic-parse-url thing-url)))))
+            (if thing-type
+                (org-store-link-props
+                 :type thing-type
+                 :link thing-url)
+              (org-store-link-props
+               :type "elfeed"
+               :link link))
+            (org-add-link-props
+             :feed-url (elfeed-feed-url (elfeed-entry-feed entry))
+             :feed-title (elfeed-feed-title (elfeed-entry-feed entry))
+             :feed-author (elfeed-feed-author (elfeed-entry-feed entry))
+             :url (elfeed-entry-link entry)
+             :description (elfeed-entry-title entry)
+             :date-timestamp (format-time-string
+                              (org-time-stamp-format t)
+                              (seconds-to-time (elfeed-entry-date entry)))
+             :date-timestamp-inactive (format-time-string
+                                       (org-time-stamp-format t t)
+                                       (seconds-to-time (elfeed-entry-date entry)))
+             :tags (mapconcat (lambda (s)
+                                (let ((tag (symbol-name s)))
+                                  (substring-no-properties tag 0 (length tag))))
+                              (elfeed-entry-tags entry) ":")
+             :enclosure-url (caar (elfeed-entry-enclosures entry))))
+          t)))
+
+ (defun elfeed-link-filter-or-id (filter-or-id)
+   "Parse the two kinds of links: search filter and entry id.
+ Entry IDs consist of the feed url and the entry id separated by
+ `#'. Everything else is a search filter."
+   (if (string-match "\\(\\(?:file\\|https?\\)://[^#]+\\)#\\(.+\\)" filter-or-id)
+       (cons (match-string 1 filter-or-id)
+             (match-string 2 filter-or-id))
+     filter-or-id))
+
+ ;;;###autoload
+ (defun elfeed-link-open (path)
+   "Jump to an elfeed entry or search."
+   (let ((filter-or-id (elfeed-link-filter-or-id path)))
+     (if (consp filter-or-id)
+         (elfeed-show-entry (elfeed-db-get-entry filter-or-id))
+       (switch-to-buffer (elfeed-search-buffer))
+       (unless (eq major-mode 'elfeed-search-mode)
+         (elfeed-search-mode))
+       (elfeed-search-set-filter filter-or-id))))
+
+ ;;;###autoload
+ (defun elfeed-link-export (path desc format)
+   "Create the HTML export version of an ELFEED link specified by
+ PATH or DESC. Links for other export formats are handled in the
+ default Org way."
+   (let* ((filter-or-id (elfeed-link-filter-or-id path))
+          (entry (when (consp filter-or-id)
+                   (elfeed-db-get-entry filter-or-id)))
+          (url (when entry
+                 (or (elfeed-entry-link entry)
+                     (elfeed-feed-url (elfeed-entry-feed entry))))))
+     (if (eq format 'html)
+         (if entry
+             (format "<a href=\"%s\" class=\"elfeed-entry\">%s</a>"
+                     (org-html-encode-plain-text url)
+                     (org-html-encode-plain-text desc))
+           (format "<i class=\"elfeed-search-filter\">%s</i>"
+                   (org-html-encode-plain-text desc)))
+       desc)))
+
+  ;;;###autoload
+ ; (with-eval-after-load 'org
+ ;   (org-add-link-type "elfeed" #'elfeed-link-open #'elfeed-link-export)
+ ;   (add-hook 'org-store-link-functions #'elfeed-link-store))
+
+ ; since org 9.0 we use this:
+ (org-link-set-parameters
+      "elfeed"
+      :follow 'elfeed-link-open
+      :export 'elfeed-link-export
+      :store 'elfeed-link-store)
+
+ (provide 'elfeed-link)
+
+ ;;; elfeed-link.el ends here
+
+ ;; an org-capture template might look like this
+ ; (setq org-capture-templates
+ ;           '(("e" "elfeed note" entry
+ ;              (file+headline "~/org/elfeed.org" "Notes")
+ ;              "* [[elfeed: %:url][%:description]]\n:PROPERTIES:\n:CREATED: %U\n:END:\n\n%?")
+ ;             ))
+ #+END_SRC
+
+* matlab
+Comment(setq fill-column default-fill-column) in matlab.el
+in mlint.ml string-to-int durch string-to-number erstetzen.
+string-to-int is obsolete https://ftp.gnu.org/old-gnu/Manuals/elisp-manual-20-2.5/html_chapter/elisp_5.html
+
+#+BEGIN_SRC emacs-lisp :results none
+  (use-package tramp)
+
+  (use-package matlab-mode                     ; Major mode for MATLAB(R) dot-m files
+  ;  ; :ensure matlab-mode
+  ;  :ensure nil
+     :pin melpa
+     :ensure t
+  ;  :load-path "~/.emacs.d/contrib/matlab-mode-20160902"
+    :mode ("\\.m$" . matlab-mode)
+    ;:commands (matlab-shell)
+    :init ;:config
+  (setq mlint-program "/Applications/MATLAB_R2017a.app/bin/maci64/mlint")
+
+    (setq matlab-shell-command "/Applications/MATLAB_R2017a.app/bin/matlab")
+    ;(matlab-cedet-setup)
+    (add-hook 'matlab-mode-hook 'auto-complete-mode)
+    (setq matlab-shell-enable-gud-flag t)
+    (require 'mlint)
+
+
+    (setq matlab-indent-function t)
+    ;(setq matlab-shell-command "matlab")
+    (setq matlab-shell-command-switches
+    '("-nodesktop"
+    "-nosplash"))
+  (define-key matlab-mode-map (kbd "C-c C-c") 'matlab-shell-run-region-or-line)
+
+  (add-to-list
+  'auto-mode-alist
+ '("\\.m$" . matlab-mode))
+
+  (defalias 'mshell 'run-matlab)
+  (defalias 'mrun 'matlab-shell-run-region-or-line)
+
+  (setq-default matlab-function t)
+  (setq-default matlab-highlight-cross-function-variables t)
+  (setq-default matlab-functions-have-end t)
+  (setq-default matlab-fill-code nil)
+  (setq-default matlab-vers-on-startup nil)
+  (add-to-list 'matlab-keyword-list "cvx_begin")
+  (add-to-list 'matlab-keyword-list "cvx_end")
+
+  ;(setq-default mlint-program "/Applications/MATLAB_R2017a.app/bin/maci64/mlint")
+  (setq-default matlab-show-mlint-warnings t)
+  (setq-default mlint-verbose t)
+
+  (defun mlint-show-warning-continuous ()
+   "Show the warning for the current mark.
+  This is intended to be run after every command. It only prints a
+  message if there is a error at point."
+   (let ((n (linemark-at-point (point) mlint-mark-group)))
+  (when n
+  (message (oref n warning)))))
+
+  (defun my-matlab-shell-hooks ()
+   (setq global-hl-line-mode nil)
+   (setq-local ml-interactive? t) ;; for mode line
+   (setq show-trailing-whitespace nil))
+  (add-hook 'matlab-shell-mode-hook 'my-matlab-shell-hooks)
+
+  (use-package flycheck
+   :ensure t
+   :pin melpa-stable)
+
+  (defun my-matlab-mode-hooks ()
+   (flycheck-mode 1)
+  ;; (auto-complete-mode 1)
+   (mlint-minor-mode 1)
+   (add-hook 'post-command-hook 'mlint-show-warning-continuous))
+  (add-hook 'matlab-mode-hook 'my-matlab-mode-hooks))
+
+
+#+END_SRC
+** Unit Tests
+#+begin_src emacs-lisp :results none
+(defun matlab-create-tester ()/
+  (interactive)
+  ;;(setq debug-on-error t)
+  ;; check, if the current buffer is a Matlab-file (.m)
+  (if (string= (file-name-extension (buffer-name)) "m")
+					; TODO check if buffer or file in current directory with name
+					; (concat(file-name-sans-extension (buffer-name)) "_test.m") already exsist
+      (progn
+	(generate-new-buffer (concat(file-name-sans-extension (buffer-name)) "_test.m"))
+	(switch-to-buffer (concat(file-name-sans-extension (buffer-name)) "_test.m"))
+	(matlab-mode)
+	)
+    (message "Not a .m file")
+    )
+  )
+#+end_src
+
+* Latex
+
+#+BEGIN_SRC emacs-lisp :results none
+(use-package tex
+  :ensure auctex
+  :ensure org-ref
+  :mode ("\\.tex\\'" . latex-mode)
+  :commands (latex-mode LaTeX-mode plain-tex-mode)
+  :bind
+  (:map TeX-mode-map ("C-c C-c" . TeX-command-run-all))
+  :init
+  (progn
+    (add-hook 'LaTeX-mode-hook #'LaTeX-preview-setup)
+    (add-hook 'LaTeX-mode-hook #'flyspell-mode)
+    (add-hook 'LaTeX-mode-hook #'turn-on-reftex)
+    (setq TeX-auto-save t
+	  TeX-parse-self t
+	  TeX-save-query nil
+	  TeX-PDF-mode t)
+    (setq-default TeX-master nil)
+    (setq TeX-source-correlate-method 'synctex)
+(add-hook 'LaTeX-mode-hook (lambda () (require 'org-ref)))))
+#+END_SRC
+
+* Passwords
+#+begin_src emacs-lisp :results none
+(use-package helm-pass
+  :ensure t
+  :commands (helm-pass)
+  :init
+  (evil-leader/set-key "p" 'helm-pass))
+#+end_src
+
+* Yasnippets
+#+BEGIN_SRC emacs-lisp :results none
+(use-package yasnippet
+  :config (setq yas-snippet-dirs
+         '("~/.emacs.d/snippets"                 ;; personal snippets
+     ;;      "/path/to/some/collection/"           ;; foo-mode and bar-mode snippet collection
+     ;;      "/path/to/yasnippet/yasmate/snippets" ;; the yasmate collection
+     ;;      "/path/to/yasnippet/snippets"         ;; the default collection
+        ))
+          (yas-global-mode 1))
+
+#+END_SRC
+
+* Flycheck
+Flycheck is a modern on-the-fly syntax checking extension
+#+Begin_SRC emacs-lisp :results none
+(use-package flycheck
+  :diminish flycheck-mode
+  :config
+  (global-flycheck-mode))
+#+END_SRC
+
+* Flyspell
+  Flyspell is a spell checker based on aspell (instead of ispell)
+** Install
+*** Mac
+install aspell
+#+Begin_SRC shell
+brew install aspell --with-lang-de --with-lang-en
+#+END_SRC
+
+** Settings
+#+Begin_SRC emacs-lisp :results none
+(setq ispell-program-name "aspell")
+(setq ispell-dictionary "de")
+(add-hook 'text-mode-hook 'turn-on-flyspell)
+(eval-after-load "flyspell"
+  '(diminish 'flyspell-mode))
+(evil-leader/set-key ";" 'ispell-word)
+#+END_SRC
+
+** Ignore special cases
+https://emacs.stackexchange.com/questions/5415/how-can-i-make-flyspell-ignore-urls
+#+BEGIN_SRC emacs-lisp :results none
+(defun flyspell-ignore-http-and-https ()
+  "Function used for `flyspell-generic-check-word-predicate' to ignore stuff starting with \"http\" or \"https\"."
+  (save-excursion
+    (forward-whitespace -1)
+    (when (looking-at " ")
+        (forward-char)
+    (not (looking-at "https?\\b")))))
+
+(put 'text-mode 'flyspell-mode-predicate 'flyspell-ignore-http-and-https)
+
+(defun flyspell-ignore-email-addresses ()
+  "Function used for `flyspell-generic-check-word-predicate' to ignore stuff starting with \"http\" or \"https\"."
+  (save-excursion
+    (forward-whitespace -1)
+    (when (looking-at " ")
+        (forward-char)
+    (not (looking-at "\\w+\\(\\.\\w+\\)?@\\(\\w\\|\\.\\)+")))))
+
+(put 'text-mode 'flyspell-mode-predicate 'flyspell-ignore-email-addresses)
+
+#+END_SRC
+
+* Multiple Cursors
+#+BEGIN_SRC emacs-lisp :results none
+(use-package multiple-cursors
+:ensure t
+:bind (("C->" . mc/mark-next-like-this)
+("C-<" . mc/mark-previous-like-this)
+("C-*" . mc/mark-all-like-this)
+("M-C-*" . mc/mark-all-like-this-in-defun)
+("C-'" . mc/edit-lines)))
+#+END_SRC
+
+* macOS Dictionary
+#+BEGIN_SRC emacs-lisp :results none
+(use-package osx-dictionary
+:init
+(which-key-declare-prefixes "SPC ?" "Lockup")
+(evil-leader/set-key "hw" 'osx-dictionary-search-input)
+:config
+(evil-set-initial-state 'osx-dictionary-mode 'emacs))
+#+END_SRC
+
+* Swiper
+#+BEGIN_SRC emacs-lisp :results none
+(use-package swiper
+ :config
+  (define-key evil-normal-state-map "/" 'swiper)
+  (define-key ivy-minibuffer-map (kbd "C-j") 'ivy-next-line)
+  (define-key ivy-minibuffer-map (kbd "C-k") 'ivy-previous-line)
+)
+#+END_SRC
+
+* emacs-restart
+#+BEGIN_SRC emacs-lisp :results none
+(use-package restart-emacs)
+#+END_SRC
+
+* helm-backup
+#+BEGIN_SRC emacs-lisp :results none
+(use-package helm-backup
+:init
+(add-hook 'after-save-hook 'helm-backup-versioning)
+)
+#+END_SRC
+
+* ox-ipython
+#+BEGIN_SRC emacs-lisp :results none
+(add-to-list 'load-path "~/.emacs.d/contrib/ox-ipynb/")
+(require 'ox-ipynb)
+#+END_SRC
+* Diminish
+#+BEGIN_SRC emacs-lisp
+(eval-after-load "undo-tree"
+  '(diminish 'undo-tree-mode))
+
+(eval-after-load "yas-minor-mode"
+  '(diminish 'yas-minor-mode))
+
+(eval-after-load "yasnippet"
+  '(diminish 'yas-minor-mode))
+
+(eval-after-load "flyspell"
+  '(diminish 'flyspell-mode))
+
+(diminish 'auto-revert-mode)
+(diminish 'auto-fill-function)
+
+#+END_SRC
+
+* Notifications
+
+https://zhongweiy.github.io/blog/2016/02/03/solve-error-emacs-not-compiled-with-dbus-support/
+
+#+BEGIN_SRC shell :tangle brew-install-apps.sh
+brew install terminal-notifier
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :results none
+(defvar terminal-notifier-command (executable-find "terminal-notifier") "The path to terminal-notifier.")
+
+; (terminal-notifier-notify "Emacs notification" "Something amusing happened")
+
+(defun terminal-notifier-notify (title message)
+  "Show a message with
+terminal-notifier-command
+."
+  (start-process "terminal-notifier"
+                 "terminal-notifier"
+                 terminal-notifier-command
+                 "-title" title
+                 "-message" message
+                 "-avtivate" "org.gnu.Emacs"
+))
+
+(defun timed-notification (time msg)
+  (interactive "sNotification when (e.g: 2 minutes, 60 seconds, 3 days): \nsMessage: ")
+  (run-at-time time nil (lambda (msg) (terminal-notifier-notify "Emacs" msg)) msg))
+
+(setq org-show-notification-handler
+      (lambda (msg) (timed-notification nil msg)))
+#+END_SRC
+
+* Clickable org-contacts in text files
+  :PROPERTIES:
+  :categories: orgmode,contacts
+  :date:     2015/06/22 13:07:03
+  :updated:  2015/06/22 13:07:03
+  :END:
+http://kitchingroup.cheme.cmu.edu/blog/2015/06/22/Clickable-org-contacts-in-text-files/?utm_source=feedburner&utm_medium=twitter&utm_campaign=Feed%3A+TheKitchinResearchGroup+%28The+Kitchin+Research+Group%29
+
+Continuing my adventures with clickable text (See [[http://kitchingroup.cheme.cmu.edu/blog/2015/06/21/Clickable-email-addresses-in-emacs/][clickable email addresses]] and
+[[http://kitchingroup.cheme.cmu.edu/blog/2015/03/18/Clickable-links-for-Twitter-handles-in-Emacs/][clickable twitter handles]]), here we consider how to get clickable names that are
+also in my org-contacts database. The goal is to have these names highlighted
+and clickable so that when I click on them I get a hydra menu of actions,
+e.g. to open the contact, email them, etc... We will again use button-lock to do
+the action. We will construct a fairly large regexp to match all the names in
+the org-contacts database. This turns out to be very easy using the regexp-opt
+function.
+
+First, I formalize the code I used last time to get text around the point that
+has a text-property. We will use that to get the text that has been highlighted
+by button-lock.
+
+#+BEGIN_SRC emacs-lisp
+(require 'hydra)
+(add-to-list 'load-path "~/.emacs.d/contrib/button-lock")
+(require 'button-lock)
+(require 'dash)
+(require 's)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(defun get-surrounding-text-with-property (property)
+  "Return text surrounding point with the text-property PROPERTY."
+  (let ((start) (end))
+    (when (get-text-property (point) property)
+      (save-excursion
+	(while (get-text-property (point) property)
+	  (backward-char))
+	(forward-char)
+	(setq start (point))
+	(while (get-text-property (point) property)
+	  (forward-char))
+	(setq end (point)))
+      (buffer-substring start end))))
+#+END_SRC
+
+#+RESULTS:
+: get-surrounding-text-with-property
+
+I want to use nicknames that are defined in my org-contacts database. We first
+try to return an assoc lookup, then the slower approach of looping through the
+entries to find a matching nickname.
+
+#+BEGIN_SRC emacs-lisp
+(defun get-contact-from-name-or-nickname (name-or-nickname)
+  "Return a contact from the org-contacts database for NAME-OR-NICKNAME."
+  (or
+   (assoc name-or-nickname (org-contacts-db))
+   ;; no assoc, so now we have to find a nickname
+   (catch 'contact
+     (dolist (contact (org-contacts-db))
+       (when (-contains? (s-split "," (or (cdr (assoc "NICKNAMES" (caddr contact))) " ")) name-or-nickname)
+	 (throw 'contact contact))))))
+#+END_SRC
+
+#+RESULTS:
+: get-contact-from-name-or-nickname
+
+Now, let us write a hydra function that will be our menu of actions. For some
+reason, when you click on a highlighted text the mouse moves to the end of the
+text, so in our hydra function we move back a char, and then get the
+info. Basically, we get the name, then get the contact, and extract what we need
+from there. Here we provide functionality to open a contact, email a contact or
+open the url of the contact (if it exists). I also want a conditional hydra,
+which doesn't seem to be an option yet, so we we roll our own here. Basically,
+we construct the code for a hydra, and only add a menu option to open the url if
+we find one in the contact. We will have to eval the code returned from this
+function to get the hydra body, and then call the body function in the action
+function for the highlighted text.
+
+#+BEGIN_SRC emacs-lisp
+(defun conditional-hydra-actions ()
+  "Construct code to create a hydra with conditional options."
+  (let ((code  '(defhydra org-contacts (:color blue)
+		  "Org contacts")))
+    (setq code
+	  (append
+	   code
+	   '(("o" (progn
+		    (backward-char)
+		    (let* ((name (get-surrounding-text-with-property 'org-contact))
+			   (contact (get-contact-from-name-or-nickname name))
+			   (contact-marker (nth 1 contact)))
+		      (switch-to-buffer (marker-buffer contact-marker))
+		      (goto-char (marker-position contact-marker))
+		      (show-subtree)))
+	      "Open contact"))))
+
+    (setq code
+	  (append
+	   code '(("e" (progn
+			 (backward-char)
+			 (let* ((name (get-surrounding-text-with-property 'org-contact))
+				(contact (get-contact-from-name-or-nickname name))
+				(email (cdr (assoc "EMAIL" (caddr contact))))))
+			 (mu4e~compose-mail email))
+		   "Email contact"))))
+
+    ;; conditional menu for opening a URL
+    (let* ((name (get-surrounding-text-with-property 'org-contact))
+	   (contact (assoc name (org-contacts-db)))
+	   (url (cdr (assoc "URL" (caddr contact)))))
+      (when url
+	(setq code
+	      (append
+	       code '(("w" (progn
+			     (backward-char)
+			     (let* ((name (get-surrounding-text-with-property 'org-contact))
+				    (contact (get-contact-from-name-or-nickname name))
+				    (url (cdr (assoc "URL" (caddr contact)))))
+			       (if url
+				   (browse-url url)
+				 (message "No url found."))))
+		       "Open in browser"))))))
+    code))
+#+END_SRC
+
+#+RESULTS:
+: conditional-hydra-actions
+
+I also want to have nicknames in this list, because sometimes I don't use the
+full names in my contact database. These are stored in a comma-separated
+property called NICKNAMES in entries that have them. A subtle point here is that
+it complicates looking up the contact in the database. Normally, I can get this
+by a simple assoc lookup. For the nicknames, that will fail, so we need a back
+up method. Now, the highlighting code. You can make the regexp by passing a list
+of strings to match to regexp-opt. We get our list of strings from:
+
+#+BEGIN_SRC emacs-lisp
+(append
+ (mapcar 'car (org-contacts-db))
+ (let ((nicknames '()))
+   (dolist (contact (org-contacts-db))
+     (when (assoc "NICKNAMES" (caddr contact))
+       (setq nicknames
+	     (append nicknames (s-split "," (cdr (assoc "NICKNAMES" (caddr contact))))))))
+   nicknames))
+#+END_SRC
+
+I am not going to show them here to protect my contacts ;). Now, we create the
+function that highlights the contacts. and add it as a hook function to
+text-mode-hook.
+
+#+BEGIN_SRC emacs-lisp
+(defun highlight-org-contacts ()
+  (button-lock-set-button
+   (regexp-opt
+    (append
+     (mapcar 'car (org-contacts-db))
+     (let ((nicknames '()))
+       (dolist (contact (org-contacts-db))
+	 (when (assoc "NICKNAMES" (caddr contact))
+	   (setq nicknames
+		 (append
+		  nicknames
+		  (s-split "," (cdr (assoc "NICKNAMES" (caddr contact))))))))
+       nicknames)))
+   (lambda ()
+     (interactive)
+     (eval (conditional-hydra-actions))
+     (org-contacts/body))
+     :face '((:underline t))
+   ;:face '((:background "MistyRose1")
+;	   (:underline t))
+   :help-echo (format "An org contact")
+   :keyboard-binding (kbd "RET")
+   :additional-property 'org-contact))
+
+(add-hook 'text-mode-hook 'highlight-org-contacts)
+#+END_SRC
+
+That does it. Now, whenever I open a text-based file, the names that are in my
+contacts are highlighted and actionable. This should be useful for meeting
+notes, etc...
+
+#+BEGIN_SRC emacs-lisp
+(add-hook 'text-mode-hook 'button-lock-mode)
+(add-hook 'org-mode-hook 'highlight-org-contacts)
+(add-hook 'org-mode-hook 'button-lock-mode)
+#+END_SRC
+
+* Clickable email adresses
+#+BEGIN_SRC emacs-lisp :results none
+(defun highlight-email-addresses ()
+  "Add button to email address. Clicking or RET will open a compose email window."
+  (button-lock-set-button
+   "\\w+\\(\\.\\w+\\)?@\\(\\w\\|\\.\\)+"
+   (lambda ()
+     (interactive)
+     (let ((start) (end) (email-address))
+       (while (get-text-property (point) 'email-address)
+         (backward-char))
+       (forward-char)
+       (setq start (point))
+       (while (get-text-property (point) 'email-address)
+         (forward-char))
+       (setq end (point))
+       (setq email-address (buffer-substring start end))
+       (mu4e~compose-mail email-address)))
+     :face '((:underline t))
+    ; :face '((:background "gray80") (:underline t))
+     :help-echo "click to send mu4e email"
+     :keyboard-binding (kbd "RET")
+     :additional-property 'email-address))
+
+     (add-hook 'text-mode-hook 'highlight-email-addresses)
+#+END_SRC
+
+* LilyPond
+http://www.antoniogervasoni.com/blog/setting-up-lilypond-and.html
+
+#+BEGIN_SRC shell :results none :tangle brew-install-apps.sh
+brew cask install lilypond
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :results none
+(add-to-list 'load-path "~/.emacs.d/contrib/lilypond")
+(autoload 'LilyPond-mode "lilypond-mode")
+(setq auto-mode-alist
+      (cons '("\\.ly$" . LilyPond-mode) auto-mode-alist))
+
+(add-hook 'LilyPond-mode-hook (lambda () (turn-on-font-lock)))
+
+#+END_SRC
+
+Maybe you need to add lilypond to your PATH:
+#+BEGIN_SRC shell
+export PATH="$PATH:/Applications/LilyPond.app/Contents/Resources/bin"
+#+END_SRC
+
+
+
+#+BEGIN_SRC emacs-lisp
+(use-package exec-path-from-shell
+  :config
+  (setq exec-path-from-shell-check-startup-files nil)
+(exec-path-from-shell-initialize))
+#+END_SRC
+* Keyboard layout
+#+BEGIN_SRC emacs-lisp
+;; disable meta to allow alt - u a to insert ä
+(setq mac-option-key-is-meta nil)
+(setq mac-option-modifier t)
+
+; map right option key to meta
+(setq mac-right-option-modifier 'meta)
+
+#+END_SRC
+* Markdown
+
+Install markdown
+#+BEGIN_SRC shell :results none :tangle brew-install-apps.sh
+brew install pandoc
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :results none
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "/usr/local/bin/pandoc"))
+#+END_SRC
+To preview your markdown file in your browser: C-c C-c p
+
+* google-translate
+#+BEGIN_SRC emacs-lisp :results none
+(use-package google-translate
+:init
+; make sure to use https
+(setq google-translate-base-url
+  "https://translate.google.com/translate_a/single")
+(setq google-translate-listen-url
+  "https://translate.google.com/translate_tts")
+:config
+(evil-leader/set-key "ht" 'google-translate-smooth-translate)
+
+(setq google-translate-translation-directions-alist
+      '(("de" . "en") ("en" . "de")))
+;  (define-key google-translate-minibuffer-keymap (kbd "C-j") 'google-translate-next-translation-direction)
+;  (define-key google-translate-minibuffer-keymap (kbd "C-k") 'google-translate-previous-translation-direction)
+)
+#+END_SRC
+
+* TODO org-mime
+#+BEGIN_SRC emacs-lisp
+;(require 'org-mime)
+#+END_SRC
+#+BEGIN_SRC emacs-lisp
+;;; org-mime.el --- org html export for text/html MIME emails
+
+;; Copyright (C) 2010-2015 Eric Schulte
+
+;; Author: Eric Schulte
+;; Keywords: mime, mail, email, html
+;; Homepage: http://orgmode.org/worg/org-contrib/org-mime.php
+;; Version: 0.01
+
+;; This file is not part of GNU Emacs.
+
+;;; License:
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3, or (at your option)
+;; any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; WYSWYG, html mime composition using org-mode
+;;
+;; For mail composed using the orgstruct-mode minor mode, this
+;; provides a function for converting all or part of your mail buffer
+;; to embedded html as exported by org-mode.  Call `org-mime-htmlize'
+;; in a message buffer to convert either the active region or the
+;; entire buffer to html.
+;;
+;; Similarly the `org-mime-org-buffer-htmlize' function can be called
+;; from within an org-mode buffer to convert the buffer to html, and
+;; package the results into an email handling with appropriate MIME
+;; encoding.
+;;
+;; you might want to bind this to a key with something like the
+;; following message-mode binding
+;;
+;;   (add-hook 'message-mode-hook
+;;             (lambda ()
+;;               (local-set-key "\C-c\M-o" 'org-mime-htmlize)))
+;;
+;; and the following org-mode binding
+;;
+;;   (add-hook 'org-mode-hook
+;;             (lambda ()
+;;               (local-set-key "\C-c\M-o" 'org-mime-org-buffer-htmlize)))
+
+;;; Code:
+(require 'cl)
+
+(declare-function org-export-string-as "ox"
+		  (string backend &optional body-only ext-plist))
+(declare-function org-trim "org" (s &optional keep-lead))
+
+(defcustom org-mime-use-property-inheritance nil
+  "Non-nil means al MAIL_ properties apply also for sublevels."
+  :group 'org-mime
+  :type 'boolean)
+
+(defcustom org-mime-default-header
+  "#+OPTIONS: latex:t\n"
+  "Default header to control html export options, and ensure
+  first line isn't assumed to be a title line."
+  :group 'org-mime
+  :type 'string)
+
+(defcustom org-mime-library 'mml
+  "Library to use for marking up MIME elements."
+  :group 'org-mime
+  :type '(choice 'mml 'semi 'vm))
+
+(defcustom org-mime-preserve-breaks t
+  "Used as temporary value of `org-export-preserve-breaks' during
+  mime encoding."
+  :group 'org-mime
+  :type 'boolean)
+
+(defcustom org-mime-fixedwith-wrap
+  "<pre style=\"font-family: courier, monospace;\">\n%s</pre>\n"
+  "Format string used to wrap a fixedwidth HTML email."
+  :group 'org-mime
+  :type 'string)
+
+(defcustom org-mime-html-hook nil
+  "Hook to run over the html buffer before attachment to email.
+  This could be used for example to post-process html elements."
+  :group 'org-mime
+  :type 'hook)
+
+(mapc (lambda (fmt)
+	(eval `(defcustom
+		 ,(intern (concat "org-mime-pre-" fmt "-hook"))
+		 nil
+		 (concat "Hook to run before " fmt " export.\nFunctions "
+			 "should take no arguments and will be run in a "
+			 "buffer holding\nthe text to be exported."))))
+      '("ascii" "org" "html"))
+
+(defcustom org-mime-send-subtree-hook nil
+  "Hook to run in the subtree in the Org-mode file before export.")
+
+(defcustom org-mime-send-buffer-hook nil
+  "Hook to run in the Org-mode file before export.")
+
+;; example hook, for setting a dark background in <pre style="background-color: #EEE;"> elements
+(defun org-mime-change-element-style (element style)
+  "Set new default htlm style for <ELEMENT> elements in exported html."
+  (while (re-search-forward (format "<%s\\>" element) nil t)
+    (replace-match (format "<%s style=\"%s\"" element style))))
+
+(defun org-mime-change-class-style (class style)
+  "Set new default htlm style for objects with classs=CLASS in
+exported html."
+  (while (re-search-forward (format "class=\"%s\"" class) nil t)
+    (replace-match (format "class=\"%s\" style=\"%s\"" class style))))
+
+;; ;; example addition to `org-mime-html-hook' adding a dark background
+;; ;; color to <pre> elements
+;; (add-hook 'org-mime-html-hook
+;;           (lambda ()
+;;             (org-mime-change-element-style
+;;              "pre" (format "color: %s; background-color: %s;"
+;;                            "#E6E1DC" "#232323"))
+;; 	    (org-mime-change-class-style
+;;              "verse" "border-left: 2px solid gray; padding-left: 4px;")))
+
+(defun org-mime-file (ext path id)
+  "Markup a file for attachment."
+  (case org-mime-library
+    ('mml (format (concat "<#part type=\"%s\" filename=\"%s\" "
+			  "disposition=inline id=\"<%s>\">\n<#/part>\n")
+		  ext path id))
+    ('semi (concat
+            (format (concat "--[[%s\nContent-Disposition: "
+			    "inline;\nContent-ID: <%s>][base64]]\n")
+		    ext id)
+            (base64-encode-string
+             (with-temp-buffer
+               (set-buffer-multibyte nil)
+               (binary-insert-encoded-file path)
+               (buffer-string)))))
+    ('vm "?")))
+
+(defun org-mime-multipart (plain html &optional images)
+  "Markup a multipart/alternative with text/plain and text/html alternatives.
+If the html portion of the message includes images wrap the html
+and images in a multipart/related part."
+  (case org-mime-library
+    ('mml (concat "<#multipart type=alternative><#part type=text/plain>"
+		  plain
+		  (when images "<#multipart type=related>")
+		  "<#part type=text/html>"
+		  html
+		  images
+		  (when images "<#/multipart>\n")
+		  "<#/multipart>\n"))
+    ('semi (concat
+            "--" "<<alternative>>-{\n"
+            "--" "[[text/plain]]\n" plain
+	    (if (and images (> (length images) 0))
+		(concat "--" "<<related>>-{\n"
+			"--" "[[text/html]]\n"  html
+			images
+			"--" "}-<<related>>\n")
+	      (concat "--" "[[text/html]]\n"  html
+		      images))
+            "--" "}-<<alternative>>\n"))
+    ('vm "?")))
+
+(defun org-mime-replace-images (str)
+  "Replace images in html files with cid links."
+  (let (html-images)
+    (cons
+     (replace-regexp-in-string ;; replace images in html
+      "src=\"\\([^\"]+\\)\""
+      (lambda (text)
+        (format
+         "src=\"cid:%s\""
+         (let* ((url (and (string-match "src=\"\\([^\"]+\\)\"" text)
+                          (match-string 1 text)))
+                (path (expand-file-name
+                       url temporary-file-directory))
+                (ext (file-name-extension path))
+                (id (replace-regexp-in-string "[\/\\\\]" "_" path)))
+           (add-to-list 'html-images
+                        (org-mime-file (concat "image/" ext) path id))
+           id)))
+      str)
+     html-images)))
+
+(defun org-mime-htmlize (&optional arg)
+  "Export to HTML an email body composed using `mml-mode'.
+If called with an active region only export that region,
+otherwise export the entire body."
+  (interactive "P")
+  (require 'ox-org)
+  (require 'ox-html)
+  (let* ((region-p (org-region-active-p))
+         (html-start (or (and region-p (region-beginning))
+                         (save-excursion
+                           (goto-char (point-min))
+                           (search-forward mail-header-separator)
+                           (+ (point) 1))))
+         (html-end (or (and region-p (region-end))
+                       ;; TODO: should catch signature...
+                       (point-max)))
+         (raw-body (concat org-mime-default-header
+			   (buffer-substring html-start html-end)))
+         (body (org-export-string-as raw-body 'org t))
+         ;; because we probably don't want to export a huge style file
+         (org-export-htmlize-output-type 'inline-css)
+         ;; makes the replies with ">"s look nicer
+         (org-export-preserve-breaks org-mime-preserve-breaks)
+	 ;; dvipng for inline latex because MathJax doesn't work in mail
+	 (org-html-with-latex 'dvipng)
+         ;; to hold attachments for inline html images
+         (html-and-images
+          (org-mime-replace-images
+	   (org-export-string-as raw-body 'html t)))
+         (html-images (unless arg (cdr html-and-images)))
+         (html (org-mime-apply-html-hook
+                (if arg
+                    (format org-mime-fixedwith-wrap body)
+                  (car html-and-images)))))
+    (delete-region html-start html-end)
+    (save-excursion
+      (goto-char html-start)
+      (insert (org-mime-multipart
+	       body html (mapconcat 'identity html-images "\n"))))))
+
+(defun org-mime-apply-html-hook (html)
+  (if org-mime-html-hook
+      (with-temp-buffer
+        (insert html)
+        (goto-char (point-min))
+        (run-hooks 'org-mime-html-hook)
+        (buffer-string))
+    html))
+
+(defmacro org-mime-try (&rest body)
+  `(condition-case nil ,@body (error nil)))
+
+(defun org-mime-send-subtree (&optional fmt)
+  (save-restriction
+    (org-narrow-to-subtree)
+    (run-hooks 'org-mime-send-subtree-hook)
+    (let* ((mp (lambda (p) (org-entry-get nil p org-mime-use-property-inheritance)))
+	   (file (buffer-file-name (current-buffer)))
+	   (subject (or (funcall mp "MAIL_SUBJECT") (nth 4 (org-heading-components))))
+	   (to (funcall mp "MAIL_TO"))
+	   (cc (funcall mp "MAIL_CC"))
+	   (bcc (funcall mp "MAIL_BCC"))
+	   (body (buffer-substring
+		  (save-excursion (goto-char (point-min))
+				  (forward-line 1)
+				  (when (looking-at "[ \t]*:PROPERTIES:")
+				    (re-search-forward ":END:" nil)
+				    (forward-char))
+				  (point))
+		  (point-max))))
+      (org-mime-compose body (or fmt 'org) file to subject
+			`((cc . ,cc) (bcc . ,bcc))))))
+
+(defun org-mime-send-buffer (&optional fmt)
+  (run-hooks 'org-mime-send-buffer-hook)
+  (let* ((region-p (org-region-active-p))
+	 (file (buffer-file-name (current-buffer)))
+	 (subject (if (not file) (buffer-name (buffer-base-buffer))
+		   (file-name-sans-extension
+		    (file-name-nondirectory file))))
+         (body-start (or (and region-p (region-beginning))
+                         (save-excursion (goto-char (point-min)))))
+         (body-end (or (and region-p (region-end)) (point-max)))
+	 (temp-body-file (make-temp-file "org-mime-export"))
+	 (body (buffer-substring body-start body-end)))
+    (org-mime-compose body (or fmt 'org) file nil subject)))
+
+(defun org-mime-compose (body fmt file &optional to subject headers)
+  (require 'message)
+  (compose-mail to subject headers nil)
+  (message-goto-body)
+  (let ((bhook
+	 (lambda (body fmt)
+	   (let ((hook (intern (concat "org-mime-pre-"
+				       (symbol-name fmt)
+				       "-hook"))))
+	     (if (> (eval `(length ,hook)) 0)
+		 (with-temp-buffer
+		   (insert body)
+		   (goto-char (point-min))
+		   (eval `(run-hooks ',hook))
+		   (buffer-string))
+	       body))))
+	(fmt (if (symbolp fmt) fmt (intern fmt))))
+    (cond
+     ((eq fmt 'org)
+      (require 'ox-org)
+      (insert (org-export-string-as
+	       (org-trim (funcall bhook body 'org)) 'org t)))
+     ((eq fmt 'ascii)
+      (require 'ox-ascii)
+      (insert (org-export-string-as
+	       (concat "#+Title:\n" (funcall bhook body 'ascii)) 'ascii t)))
+     ((or (eq fmt 'html) (eq fmt 'html-ascii))
+      (require 'ox-ascii)
+      (require 'ox-org)
+      (let* ((org-link-file-path-type 'absolute)
+	     ;; we probably don't want to export a huge style file
+	     (org-export-htmlize-output-type 'inline-css)
+	     (html-and-images
+	      (org-mime-replace-images
+	       (org-export-string-as (funcall bhook body 'html) 'html t)))
+	     (images (cdr html-and-images))
+	     (html (org-mime-apply-html-hook (car html-and-images))))
+	(insert (org-mime-multipart
+		 (org-export-string-as
+		  (org-trim
+		   (funcall bhook body (if (eq fmt 'html) 'org 'ascii)))
+		  (if (eq fmt 'html) 'org 'ascii) t)
+		 html)
+		(mapconcat 'identity images "\n")))))))
+
+(defun org-mime-org-buffer-htmlize ()
+  "Create an email buffer containing the current org-mode file
+  exported to html and encoded in both html and in org formats as
+  mime alternatives."
+  (interactive)
+  (org-mime-send-buffer 'html))
+
+(defun org-mime-subtree ()
+  "Create an email buffer containing the current org-mode subtree
+  exported to a org format or to the format specified by the
+  MAIL_FMT property of the subtree."
+  (interactive)
+  (org-mime-send-subtree
+   (or (org-entry-get nil "MAIL_FMT" org-mime-use-property-inheritance) 'org)))
+
+(provide 'org-mime)
+
+#+END_SRC
+* org-static-blog
+#+BEGIN_SRC emacs-lisp :results none
+(setq org-static-blog-publish-title "zngguvnf.org")
+(setq org-static-blog-publish-url "https://zngguvnf.org/")
+(setq org-static-blog-publish-directory "~/projects/blog/html/")
+(setq org-static-blog-posts-directory "~/projects/blog/html/posts/")
+(setq org-static-blog-drafts-directory "~/projects/blog/html/drafts/")
+(setq org-export-with-toc nil)
+(setq org-export-with-section-numbers nil)
+(setq org-static-blog-index-length 2)
+
+(setq org-static-blog-page-header
+"<meta  name=\"author\" content=\"zngguvnf\" />
+<link href= \"static/style.css\" rel=\"stylesheet\" type=\"text/css\" />
+<meta http-equiv=\"content-type\" content=\"application/xhtml+xml; charset=UTF-8\" />
+<meta name=\"viewport\" content=\"initial-scale=1,width=device-width,minimum-scale=1\">")
+
+(setq org-static-blog-page-preamble
+"<div class=\"header\">
+  <a href=\"https://zngguvnf.org\">zngguvnf's Blog</a>
+</div>")
+
+
+(setq org-static-blog-page-postamble
+"<div id=\"archive\">
+  <a href=\"archive.html\">archive</a>
+</div>
+<center><a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\"><img alt=\"Creative Commons License\" style=\"border-width:0\" src=\"https://i.creativecommons.org/l/by-sa/3.0/88x31.png\" /></a><br /><span xmlns:dct=\"https://purl.org/dc/terms/\" href=\"https://purl.org/dc/dcmitype/Text\" property=\"dct:title\" rel=\"dct:type\">https://zngguvnf.org</span> by <a xmlns:cc=\"https://creativecommons.org/ns#\" href=\"https://zngguvnf.org\" property=\"cc:attributionName\" rel=\"cc:attributionURL\">zngguvnf</a> is licensed under a <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.</center>")
+
+
+;; use org-mode style dates
+(defun org-static-blog-create-index ()
+  "Re-render the blog index page.
+The index page contains the last `org-static-blog-index-length`
+entries as full text entries."
+  (let ((posts (directory-files
+                org-static-blog-posts-directory t ".*\\.org$" nil))
+        (index-file (concat org-static-blog-publish-directory org-static-blog-index-file))
+        (index-entries nil))
+    (dolist (file posts)
+      (org-static-blog-with-find-file
+       file
+       (let ((date (org-static-blog-get-date file))
+             (title (org-static-blog-get-title file))
+             (content (org-export-as 'org-static-blog-post-bare nil nil nil nil))
+             (url (org-static-blog-get-url file)))
+           (add-to-list 'index-entries (list date title url content)))))
+    (org-static-blog-with-find-file
+     index-file
+     (erase-buffer)
+     (insert
+      (concat "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"
+\"https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">
+<html xmlns=\"https://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">
+<head>
+<meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" />
+<link rel=\"alternate\"
+      type=\"appliation/rss+xml\"
+      href=\"" org-static-blog-publish-url org-static-blog-rss-file "\"
+      title=\"RSS feed for " org-static-blog-publish-url "\">
+<title>" org-static-blog-publish-title "</title>"
+org-static-blog-page-header
+"</head>
+<body>
+<div id=\"preamble\" class=\"status\">"
+org-static-blog-page-preamble
+"</div>
+<div id=\"content\">"))
+     (setq index-entries (sort index-entries (lambda (x y) (time-less-p (nth 0 y) (nth 0 x)))))
+     (dolist (idx (number-sequence 0 (1- (min org-static-blog-index-length
+                                              (length index-entries)))))
+       (let ((entry (nth idx index-entries)))
+         (insert
+         (concat  "<h1 class=\"post-title\">"
+                  "<a href=\"" (nth 2 entry) "\">" (nth 1 entry) "</a>"
+                  "<div class=\"post-date\">" "<span style=""font-weight:normal"">" (format-time-string "<%Y-%m-%d>" (nth 0 entry)) "</span>" "</div>"
+         ;;         "<div class=\"post-date\">" "<span style=""font-weight:normal"">" (format-time-string "<%Y-%m-%d %a>" (nth 0 entry)) "</span>" "</div>"
+                  "</h1>\n"
+                  (nth 3 entry)))))
+         ;; (insert
+         ;;  (concat "<div class=\"post-date\">" (format-time-string "%d %b %Y" (nth 0 entry)) "</div>"
+         ;;          "<h1 class=\"post-title\">"
+         ;;          "<a href=\"" (nth 2 entry) "\">" (nth 1 entry) "</a>"
+         ;;          "</h1>\n"
+         ;;          (nth 3 entry)))))
+     (insert
+"<div id=\"archive\">
+  <a href=\"" org-static-blog-archive-file "\">archive</a>
+</div>
+</div>
+</body>"))))
+
+(defun org-static-blog-create-archive ()
+  "Re-render the blog archive page.
+The archive page contains single-line links and dates for every
+blog entry, but no entry body."
+  (let ((posts (directory-files
+                org-static-blog-posts-directory t ".*\\.org$" nil))
+        (archive-file (concat org-static-blog-publish-directory org-static-blog-archive-file))
+        (archive-entries nil))
+    (dolist (file posts)
+      (org-static-blog-with-find-file
+       file
+       (let ((date (org-static-blog-get-date file))
+             (title (org-static-blog-get-title file))
+             (url (org-static-blog-get-url file)))
+           (add-to-list 'archive-entries (list date title url)))))
+    (org-static-blog-with-find-file
+     archive-file
+     (erase-buffer)
+     (insert (concat
+              "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"
+\"https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">
+<html xmlns=\"https://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">
+<head>
+<meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" />
+<link rel=\"alternate\"
+      type=\"appliation/rss+xml\"
+      href=\"" org-static-blog-publish-url org-static-blog-rss-file "\"
+      title=\"RSS feed for " org-static-blog-publish-url "\">
+<title>" org-static-blog-publish-title "</title>"
+org-static-blog-page-header
+"</head>
+<body>
+<div id=\"preamble\" class=\"status\">"
+org-static-blog-page-preamble
+"</div>
+<div id=\"content\">
+<h1 class=\"title\">Archive</h1>\n"))
+       (dolist (entry (sort archive-entries (lambda (x y) (time-less-p (car y) (car x)))))
+       ;;   (insert
+       ;;    (concat
+       ;;     "<div class=\"post-date\">" (format-time-string "%d %b %Y" (nth 0 entry)) "</div>"
+       ;;     "<h2 class=\"post-title\">"
+       ;;     "<a href=\"" (nth 2 entry) "\">" (nth 1 entry) "</a>"
+       ;;     "</h2>\n")))
+       ;; (insert "</body>\n </html>"))))
+         (insert
+          (concat
+           "<h2 class=\"post-title\">"
+           "<a href=\"" (nth 2 entry) "\">" (nth 1 entry) "</a>"
+           "<div class=\"post-date\">" "<span style=""font-weight:normal"">" (format-time-string "<%Y-%m-%d>" (nth 0 entry)) "</span>" "</div>"
+           "</h2>\n")))
+       (insert "</body>\n </html>"))))
+
+
+(defun org-static-blog-post-template (contents info)
+  "Return complete document string after blog post conversion.
+CONTENTS is the transcoded contents string.  INFO is a plist used
+as a communication channel."
+  (let ((title (org-export-data (plist-get info :title) info))
+        (date (org-timestamp-format (car (plist-get info :date)) "<%Y-%m-%d>")))
+    (concat
+"<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"
+\"https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">
+<html xmlns=\"https://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">
+<head>
+<meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" />
+<link rel=\"alternate\"
+      type=\"appliation/rss+xml\"
+      href=\"" org-static-blog-publish-url org-static-blog-rss-file "\"
+      title=\"RSS feed for " org-static-blog-publish-url "\">
+<title>" title "</title>"
+org-static-blog-page-header
+"</head>
+<body>
+<div id=\"preamble\" class=\"status\">"
+org-static-blog-page-preamble
+"</div>
+<div id=\"content\">
+<h1 class=\"post-title\">" title "
+<div class=\"post-date\">"
+"<span style=""font-weight:normal"">"
+date
+"</span>"
+"</div>"
+"</h1>\n"
+contents
+"</div>
+<div id=\"postamble\" class=\"status\">"
+org-static-blog-page-postamble
+"</div>
+</body>
+</html>")))
+
+;        (concat  "<h1 class=\"post-title\">"
+;                  "<a href=\"" (nth 2 entry) "\">" (nth 1 entry) "</a>"
+;                  "<div class=\"post-date\">" (format-time-string "<%Y-%m-%d %a>" (nth 0 entry)) "</div>"
+;                  "</h1>\n"
+;                  (nth 3 entry)))))
+
+
+
+;; org todo faces
+(setq org-todo-keywords '((type "PROJECT(p)" "TODO(t!)" "NEXT(n!)" "STARTED(s!)" "WAITING(w@)" "DELEGATED(a@)" "|" "DONE(d!)" "CANCELLED(c@)" "REF(r@)" "SOMEDAY(m!)")))
+
+#+END_SRC
+
+* yaml
+#+BEGIN_SRC emacs-lisp :results none
+(use-package yaml-mode)
+#+END_SRC
+
+* Audionotes
+#+BEGIN_SRC emacs-lisp :results none
+(use-package audio-notes-mode
+:init
+(setq anm/hook-into-org-pull nil)
+:config
+(setq anm/notes-directory "~/share/nc-essen/audio-memos")
+(setq anm/goto-file "~/org/audio-notes.org")) ;File in which you'll write your notes as they are played.
+#+END_SRC
+
+* git gutter
+#+BEGIN_SRC emacs-lisp
+(use-package git-gutter
+:init
+(global-git-gutter-mode +1) ; use git gitter for files in git repo
+)
+#+END_SRC
+
+#+RESULTS:
+* line numbers
+#+BEGIN_SRC emacs-lisp
+(setq-default display-line-numbers 'visual)
+#+END_SRC
+* ob-ipython
+#+BEGIN_SRC emacs-lisp
+(use-package ob-ipython)
+;(setq ob-ipython-command "/ssh:matthias@139.13.132.218:/usr/bin/ipython")
+(setq python-shell-prompt-detect-failure-warning nil)
+(setq python-shell-interpreter "ipython")
+(setq ob-ipython-driver-port 9988)
+#+END_SRC
+
+#+RESULTS:
+: 9988
+
+* youtube-dl
+https://github.com/skeeto/.emacs.d/blob/master/etc/feed-setup.el
+#+BEGIN_SRC emacs-lisp
+(load "~/.emacs.d/contrib/youtube-dl.el")
+
+;; youtube-dl config
+
+(setq youtube-dl-directory "~/Downloads/youtube-dl/")
+
+(defface elfeed-youtube
+  '((t :foreground "#f9f"))
+  "Marks YouTube videos in Elfeed."
+  :group 'elfeed)
+
+(push '(youtube elfeed-youtube)
+      elfeed-search-face-alist)
+
+(defun elfeed-show-youtube-dl ()
+  "Download the current entry with youtube-dl."
+  (interactive)
+  (pop-to-buffer (youtube-dl (elfeed-entry-link elfeed-show-entry))))
+
+(cl-defun elfeed-search-youtube-dl (&key slow)
+  "Download the current entry with youtube-dl."
+  (interactive)
+  (let ((entries (elfeed-search-selected)))
+    (dolist (entry entries)
+      (if (null (youtube-dl (elfeed-entry-link entry)
+                            :title (elfeed-entry-title entry)
+                            :slow slow))
+          (message "Entry is not a YouTube link!")
+        (message "Downloading %s" (elfeed-entry-title entry)))
+      (elfeed-untag entry 'unread)
+      (elfeed-search-update-entry entry)
+      (unless (use-region-p) (forward-line)))))
+
+;(defalias 'elfeed-search-youtube-dl-slow
+;  (expose #'elfeed-search-youtube-dl :slow t))
+
+(define-key elfeed-show-mode-map "d" 'elfeed-show-youtube-dl)
+(define-key elfeed-search-mode-map "d" 'elfeed-search-youtube-dl)
+(define-key elfeed-search-mode-map "D" 'elfeed-search-youtube-dl-slow)
+(define-key elfeed-search-mode-map "L" 'youtube-dl-list)
+#+END_SRC
+
+#+RESULTS:
+: youtube-dl-list
+* org mime
+#+BEGIN_SRC emacs-lisp
+(require 'org-mime)
+#+END_SRC
+* fix remote code execution
+#+BEGIN_SRC emacs-lisp
+;; Mitigate Bug#28350 (security) in Emacs 25.2 and earlier.
+  (eval-after-load "enriched"
+    '(defun enriched-decode-display-prop (start end &optional param)
+       (list start end)))
+#+END_SRC
+
+#+RESULTS:
