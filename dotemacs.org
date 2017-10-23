@@ -244,6 +244,13 @@ i do not use evil-substitue, so i mapped evil-surround to "s"
   (define-key evil-visual-state-map "s" 'evil-surround-region))
 #+END_SRC
 
+** evil nerd commenter
+#+BEGIN_SRC emacs-lisp :results none
+(use-package evil-nerd-commenter
+:init (evilnc-default-hotkeys))
+#+END_SRC
+
+
 * Windows
 i want emacs to split the windows horizontally by default
 seems you only need this when using a small (notebook) screen
