@@ -420,7 +420,7 @@ and ofc you can use HJLK instead of the default keys (BPNF)
  #+BEGIN_SRC emacs-lisp :results none
  (set-face-attribute 'default nil
                      :family "Source Code Pro"
-                     :height 150
+                     :height 100
                      :weight 'normal
                      :width 'normal)
  #+END_SRC
