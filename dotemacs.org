@@ -673,7 +673,7 @@ brew install poppler automake
 
 Emacs will ask you to build a server. Typ 'y'. -> You will get an
 error. Restarting emacs works for me.
-# +BEGIN_SRC emacs-lisp :results none
+#+BEGIN_SRC emacs-lisp :results none
 (use-package pdf-tools
   :init
   ;slows startup down
@@ -689,7 +689,7 @@ error. Restarting emacs works for me.
 #+END_SRC
 
 evil-keybindings
-# +BEGIN_SRC emacs-lisp :results none
+#+BEGIN_SRC emacs-lisp :results none
 (evil-set-initial-state 'pdf-view-mode 'normal)
 (evil-make-overriding-map pdf-view-mode-map 'normal t)
 (evil-define-key 'normal pdf-view-mode-map "j" 'pdf-view-next-line-or-next-page)
@@ -704,7 +704,7 @@ evil-keybindings
 #+END_SRC
 
 Open file:/path/to/pdf.pdf::2 at page 2
-# +BEGIN_SRC emacs-lisp :results none
+#+BEGIN_SRC emacs-lisp :results none
   (use-package org-pdfview)
   (eval-after-load 'org '(require 'org-pdfview))
   (delete '("\\.pdf\\'" . default) org-file-apps)
