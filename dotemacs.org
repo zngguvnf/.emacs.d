@@ -564,10 +564,6 @@ http://wikemacs.org/wiki/Outline
 #+BEGIN_SRC emacs-lisp :results none
 (add-to-list 'load-path "~/.emacs.d/contrib/outline-magic")
 
-(add-hook 'outline-mode-hook
-          (lambda ()
-            (require 'outline-cycle)))
-
 (add-hook 'outline-minor-mode-hook
           (lambda ()
             (require 'outline-magic)
