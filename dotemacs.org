@@ -338,6 +338,11 @@ close current window
 (evil-leader/set-key "wdd" 'delete-window)
 #+END_SRC
 
+delete other windows
+#+BEGIN_SRC emacs-lisp :results none
+(evil-leader/set-key "wdo" 'delete-other-windows)
+#+END_SRC
+
 close windows by number
 #+Begin_SRC emacs-lisp :results none
 (evil-leader/set-key "wd0" (lambda () (interactive) (select-window-0 1)))
