@@ -212,9 +212,9 @@ Files:
 (evil-leader/set-key "fs" 'save-buffer)
 (evil-leader/set-key "fd" '(lambda () (interactive) (find-file "~/.emacs.d/dotemacs.org")))
 (which-key-add-key-based-replacements "SPC fd" "dotemacs.org")
-(evil-leader/set-key "fg" '(lambda () (interactive) (find-file "~/org/gtd.org")))
+(evil-leader/set-key "fg" '(lambda () (interactive) (find-file "~/share/nc-essen/org/gtd.org")))
 (which-key-add-key-based-replacements "SPC fg" "gtd.org")
-(evil-leader/set-key "ft" '(lambda () (interactive) (find-file "~/org/trackme.org")))
+(evil-leader/set-key "ft" '(lambda () (interactive) (find-file "~/share/nc-essen/org/trackme.org")))
 (which-key-add-key-based-replacements "SPC ft" "trackme.org")
 #+END_SRC
 
@@ -774,7 +774,7 @@ Open file:/path/to/pdf.pdf::2 at page 2
 (global-set-key "\C-cl" 'org-store-link)
 (global-set-key "\C-ca" 'org-agenda)
 (global-set-key "\C-cb" 'org-iswitchb)
-(global-set-key (kbd "C-c g") (lambda() (interactive)(find-file "~/org/gtd.org")))
+(global-set-key (kbd "C-c g") (lambda() (interactive)(find-file "~/share/nc-essen/org/gtd.org")))
 
 ;; make *** look nice
 ;(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
@@ -992,7 +992,7 @@ while in major-mode org
 #+BEGIN_SRC emacs-lisp :results none
 ;; ** mobile org
  ;; begin mac einstellungen
-(setq org-directory "~/org/")
+(setq org-directory "~/share/nc-essen/org/")
 (setq org-mobile-directory "~/share/oc-essen/orgmobile/")
 ;;(setq org-mobile-agenda-files (quote ("~/org/gtd.org")))
 ;;(setq org-mobile-inbox-for-pull "~/org/gtd.org")
@@ -1042,7 +1042,7 @@ while in major-mode org
 ** org-contacts
 #+BEGIN_SRC emacs-lisp :results none
 ;; ** org-contacts
-(setq org-contacts-files '("~/org/contacts.org"))
+(setq org-contacts-files '("~/share/nc-essen/org/contacts.org"))
 
 ;; set it in elpa/org-plus-contrib/org-contacts.el !!!
 ;;(custom-set-variables
@@ -1052,7 +1052,7 @@ while in major-mode org
 
 (setq org-link-abbrev-alist
       '(
-        ("contact" . "~/org/contacts.org::/\*.*%s/")
+        ("contact" . "~/share/nc-essen/org/contacts.org::/\*.*%s/")
 ;;	("tsfile" . "~/org-mode/files.org_archive::/\*.*%s/")
 	))
 #+END_SRC
@@ -1575,7 +1575,7 @@ i like to open stuff with 'o', so i switch 'o' and 'e' in dired
 
   :config
   (elfeed-org)
-  (setq rmh-elfeed-org-files (list "~/org/elfeed.org"))
+  (setq rmh-elfeed-org-files (list "~/share/nc-essen/org/elfeed.org"))
   (setq-default elfeed-search-filter "@2-day-ago +unread ")
 
   (defalias 'elfeed-toggle-star
@@ -1732,7 +1732,7 @@ i like to open stuff with 'o', so i switch 'o' and 'e' in dired
  ;; an org-capture template might look like this
  ; (setq org-capture-templates
  ;           '(("e" "elfeed note" entry
- ;              (file+headline "~/org/elfeed.org" "Notes")
+ ;              (file+headline "~/share/nc-essen/org/elfeed.org" "Notes")
  ;              "* [[elfeed: %:url][%:description]]\n:PROPERTIES:\n:CREATED: %U\n:END:\n\n%?")
  ;             ))
  #+END_SRC
@@ -2690,7 +2690,7 @@ org-static-blog-page-postamble
 (setq anm/hook-into-org-pull nil)
 :config
 (setq anm/notes-directory "~/share/nc-essen/audio-memos")
-(setq anm/goto-file "~/org/audio-notes.org")) ;File in which you'll write your notes as they are played.
+(setq anm/goto-file "~/share/nc-essen/org/audio-notes.org")) ;File in which you'll write your notes as they are played.
 #+END_SRC
 
 * git gutter
