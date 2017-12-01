@@ -2479,6 +2479,10 @@ otherwise export the entire body."
 #+END_SRC
 * org-static-blog
 #+BEGIN_SRC emacs-lisp :results none
+(add-to-list 'load-path "~/projects/blog/org-static-blog/")
+; (require 'org)
+(require 'org-static-blog)
+
 (setq org-static-blog-publish-title "zngguvnf.org")
 (setq org-static-blog-publish-url "https://zngguvnf.org/")
 (setq org-static-blog-publish-directory "~/projects/blog/html/")
@@ -2486,7 +2490,7 @@ otherwise export the entire body."
 (setq org-static-blog-drafts-directory "~/projects/blog/html/drafts/")
 (setq org-export-with-toc nil)
 (setq org-export-with-section-numbers nil)
-(setq org-static-blog-index-length 2)
+(setq org-static-blog-index-length 1)
 
 (setq org-static-blog-page-header
 "<meta  name=\"author\" content=\"zngguvnf\" />
