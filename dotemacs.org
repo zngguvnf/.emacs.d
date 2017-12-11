@@ -2782,3 +2782,11 @@ https://github.com/skeeto/.emacs.d/blob/master/etc/feed-setup.el
 #+END_SRC
 
 #+RESULTS:
+* tldr-mode
+A collection of simplified and community-driven man pages.
+#+BEGIN_SRC emacs-lisp :results none
+(use-package tldr)
+#+END_SRC
+
+After installation/updates you have to rename ~/.emacs.d/tldr-master to ~/.emacs.d/tldr
+
