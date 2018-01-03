@@ -967,7 +967,7 @@ while in major-mode org
 ;; @ claims for a short note that will be add to the LOOGBOOK
 (setq org-use-fast-todo-selection t)
 ;; (setq org-todo-keywords '((type "TODO(t!)" "NEXT(n!)" "STARTED(s!)" "WAITING(w@)" "DELEGATED(a@)" "|" "REF(r@)" "|" "DONE(d!)" "CANCELLED(c@)")))
-(setq org-todo-keywords '((type "PROJECT(p)" "TODO(t!)" "NEXT(n!)" "STARTED(s!)" "WAITING(w@)" "DELEGATED(a@)" "|" "DONE(d!)" "CANCELLED(c@)" "REF(r@)" "SOMEDAY(m!)")))
+(setq org-todo-keywords '((type "TODO(t!)" "NEXT(n!)" "STARTED(s!)" "WAITING(w@)" "DELEGATED(a@)" "PROJECT(p)" "|" "DONE(d!)" "CANCELLED(c@)" "REF(r@)" "SOMEDAY(m!)")))
 (setq org-log-into-drawer t)
 
 
@@ -1273,6 +1273,50 @@ belongs as a list."
 (which-key-declare-prefixes "SPC o" "org")
 (evil-leader/set-key "oa" 'org-archive-subtree-hierarchical)
 #+END_SRC
+** org-checklist
+https://orgmode.org/worg/org-contrib/org-checklist.html
+
+#+BEGIN_SRC emacs-lisp :results none
+(require 'org-checklist)
+#+END_SRC
+
+when creating a recurring task add the property :RESET_CHECK_BOXES: with a value of t
+-> clean checkboxes, when Task is marked as DONE
+
+
+https://lists.gnu.org/archive/html/emacs-orgmode/2012-02/msg00474.html
+
+#+BEGIN_SRC emacs-lisp :results none
+(defun ndk/checkbox-list-complete ()
+  "Marks a TODO-entry as Done when all chexboxes are toggled.
+  Just works, for entries with [/] or [%]"
+; uncomment (org-todo 'todo) to change TODO-state from DONE (when all checkboxes are toggled) to the first element of org-todo-keywords when you untoggle a checkbox.
+; When you have (setq org-log-into-drawer t) this will create an entry in the :LOGBOOK: everytime you toggle/untoggle a checkbox
+  (save-excursion
+    (org-back-to-heading t)
+    (let ((beg (point)) end)
+      (end-of-line)
+      (setq end (point))
+      (goto-char beg)
+      (if (re-search-forward 
+"\\[\\([0-9]*%\\)\\]\\|\\[\\([0-9]*\\)/\\([0-9]*\\)\\]" end t)
+            (if (match-end 1)
+                (if (equal (match-string 1) "100%")
+                    ;; all done - do the state change
+                    (org-todo 'done)
+                  ;(org-todo 'todo) ; this will be the first element of org-todo-keywords
+                  )
+              (if (and (> (match-end 2) (match-beginning 2))
+                       (equal (match-string 2) (match-string 3)))
+                  (org-todo 'done)
+                 ;(org-todo 'todo)
+                 ))))))
+
+
+(eval-after-load 'org-list
+     '(add-to-list 'org-checkbox-statistics-hook (function ndk/checkbox-list-complete)))
+#+END_SRC
+
 * org-ref
 
 
@@ -2693,7 +2737,7 @@ org-static-blog-page-postamble
 
 
 ;; org todo faces
-(setq org-todo-keywords '((type "PROJECT(p)" "TODO(t!)" "NEXT(n!)" "STARTED(s!)" "WAITING(w@)" "DELEGATED(a@)" "|" "DONE(d!)" "CANCELLED(c@)" "REF(r@)" "SOMEDAY(m!)")))
+(setq org-todo-keywords '((type "TODO(t!)" "NEXT(n!)" "STARTED(s!)" "WAITING(w@)" "DELEGATED(a@)" "PROJECT(p)" "|" "DONE(d!)" "CANCELLED(c@)" "REF(r@)" "SOMEDAY(m!)")))
 
 #+END_SRC
 
