@@ -754,6 +754,7 @@ Open file:/path/to/pdf.pdf::2 at page 2
 	;   org-mu4e
 	   org-inlinetask
 	   org-secretary
+         org-depend
         ;   org-drill
            )))
     (dolist (m my-org-modules)
@@ -792,13 +793,27 @@ Open file:/path/to/pdf.pdf::2 at page 2
 ;; ** TODO a
 ;; ** TODO b, needs to wait for (a)
 ;; ** TODO c, needs to wait for (a) and (b)
-(setq org-enforce-todo-dependencies t)
+;(setq org-enforce-todo-dependencies t)
 (setq org-agenda-dim-blocked-tasks t)
 ;; just works jusing C-c C-t , not Shift left/right
 ;; to ignore the dependencies use C-u C-u C-u C-c C-t
 ;; use tag instead of properties
 ;; (setq org-track-ordered-property-with-tag t)
 ;; shortcut C-c C-x o
+
+
+;; (require 'org-depend) ; -> beginning of org block
+
+;; * NEXT Start Computer
+;;   :PROPERTIES:
+;;   :TRIGGER: start-emacs(NEXT)
+;;   :END:
+;;   - Mark this entry as DONE ans 'Start Emacs' will be marked as NEXT
+
+;; * TODO Start Emacs
+;;   :PROPERTIES:
+;;   :ID: start-emacs
+;;   :END:
 
 ; speed up agenda
 (setq org-agenda-inhibit-startup t) ;; ~50x speedup
