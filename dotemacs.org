@@ -1266,13 +1266,10 @@ belongs as a list."
     (newline)
     (org-insert-struct (cdr struct))))
 
-(defun org-archive-subtree ()
-  (org-archive-subtree-hierarchical)
-  )
-
 (which-key-declare-prefixes "SPC o" "org")
 (evil-leader/set-key "oa" 'org-archive-subtree-hierarchical)
 #+END_SRC
+
 ** org-checklist
 https://orgmode.org/worg/org-contrib/org-checklist.html
 
