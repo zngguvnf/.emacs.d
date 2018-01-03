@@ -953,6 +953,11 @@ while in major-mode org
 
 ** Logging and clocking
 #+BEGIN_SRC emacs-lisp :results none
+; set new shortcut for org-time-stamp-inactive because C-c ! does no longer work.
+; looks like Flycheck mode uses ! as prefix
+; https://lists.gnu.org/archive/html/emacs-orgmode/2016-03/msg00195.html
+(define-key org-mode-map (kbd "C-c i") 'org-time-stamp-inactive)
+
 ;; log when a todo was created
 ;; (require 'org-expiry) ; see org-modules
 (org-expiry-insinuate)
