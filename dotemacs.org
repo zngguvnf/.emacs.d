@@ -1333,6 +1333,20 @@ https://lists.gnu.org/archive/html/emacs-orgmode/2012-02/msg00474.html
      '(add-to-list 'org-checkbox-statistics-hook (function ndk/checkbox-list-complete)))
 #+END_SRC
 
+** org-mode stuff outside org-mode
+
+#+BEGIN_SRC emacs-lisp :results none
+(defun insert-datestamp()
+  "org-mode like datestamps outside org-mode"
+  (interactive)
+  (let* ((org-date (org-read-date)) ; YYYY-mm-dd
+         (year (substring org-date 0 4))
+         (month (substring org-date 5 7))
+         (day (substring org-date 8 10)))
+    (insert (concat day "." month "." year " "))))
+
+(global-set-key (kbd "C-c .") 'insert-datestamp)
+#+END_SRC
 * org-ref
 
 
