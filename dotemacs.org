@@ -1599,6 +1599,49 @@ i like to open stuff with 'o', so i switch 'o' and 'e' in dired
 (evil-define-key 'normal dired-mode-map "v" 'evil-visual-char)
 #+END_SRC
 
+** Managing Digital Files
+
+#+BEGIN_SRC emacs-lisp :results none
+(defun dired-add-tag-to-filename (&optional arg)
+  "append string to filename"
+  (interactive)
+  (let ((mytag (read-string "tag: ")))
+    (dolist (file (dired-get-marked-files t arg))
+      (let ((filename (f-no-ext file))
+            (extension (f-ext file)))
+        (rename-file file (concat filename mytag "." extension) 1) ; 1 ask before overwrite if file exsist
+        (revert-buffer)))))
+
+
+(evil-define-key 'normal dired-mode-map "_" 'dired-add-tag-to-filename)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :results none
+(defun dired-add-timestamp-to-filename (&optional arg)
+  "Add timestamp in front of filename"
+  (interactive)
+  (let ((date (org-read-date)))
+    (dolist (file (dired-get-marked-files t arg))
+      (let* ((newDateTmp (s-replace ":" "." date))
+             (newDate (s-replace " " "T" newDateTmp)))
+        (rename-file file (concat newDate "--" file) 1) ; 1 ask before overwrite if file exsist
+       ; (revert-buffer) auto-revert might be annoying when renaming multiple files
+        ))))
+(evil-define-key 'normal dired-mode-map "." 'dired-add-timestamp-to-filename)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :results none
+(defun dired-rename-file()
+  "rename a file"
+  (interactive)
+  (dolist (file (dired-get-marked-files t))
+    (let ((newFilename (read-string "new filename: ")))
+      (rename-file file (concat newFilename (f-ext file)) 1)))
+  (revert-buffer))
+
+(evil-define-key 'normal dired-mode-map "r" 'dired-rename-file)
+#+END_SRC
+
 * emms
 #+BEGIN_SRC emacs-lisp :results none
 (use-package emms
