@@ -296,7 +296,6 @@ i do not use evil-substitue, so i mapped evil-surround to "s"
 :init (evilnc-default-hotkeys))
 #+END_SRC
 
-
 * Windows
 i want emacs to split the windows horizontally by default
 seems you only need this when using a small (notebook) screen
@@ -571,6 +570,7 @@ Mail stuff is privat
 #+BEGIN_SRC emacs-lisp
 (org-babel-load-file "~/.emacs.d/dotemacs-mail.org")
 #+END_SRC
+
 * pdfs
 ** TODO pdftools
 :PROPERTIES:
@@ -2043,6 +2043,7 @@ https://emacs.stackexchange.com/questions/5415/how-can-i-make-flyspell-ignore-ur
 (add-to-list 'load-path "~/.emacs.d/contrib/ox-ipynb/")
 (require 'ox-ipynb)
 #+END_SRC
+
 * Diminish
 #+BEGIN_SRC emacs-lisp
 (eval-after-load "undo-tree"
@@ -2135,6 +2136,7 @@ export PATH="$PATH:/Applications/LilyPond.app/Contents/Resources/bin"
 (setq mac-right-option-modifier 'meta)
 
 #+END_SRC
+
 * Markdown
 
 Install markdown
@@ -2524,6 +2526,7 @@ otherwise export the entire body."
 (provide 'org-mime)
 
 #+END_SRC
+
 * org-static-blog
 #+BEGIN_SRC emacs-lisp :results none
 (add-to-list 'load-path "~/projects/blog/org-static-blog/")
@@ -2757,6 +2760,7 @@ org-static-blog-page-postamble
 #+BEGIN_SRC emacs-lisp
 (setq-default display-line-numbers 'visual)
 #+END_SRC
+
 * ob-ipython
 #+BEGIN_SRC emacs-lisp
 (use-package ob-ipython)
@@ -2820,6 +2824,7 @@ https://github.com/skeeto/.emacs.d/blob/master/etc/feed-setup.el
 #+BEGIN_SRC emacs-lisp
 (require 'org-mime)
 #+END_SRC
+
 * fix remote code execution
 #+BEGIN_SRC emacs-lisp
 ;; Mitigate Bug#28350 (security) in Emacs 25.2 and earlier.
