@@ -5,6 +5,12 @@
   :LOGBOOK:
   - State "DONE"       from "WAITING"    [2017-01-16 Mon 18:55]
   :END:
+
+Hide warning buffer
+#+BEGIN_SRC emacs-lisp :results none
+(setq warning-minimum-level :emergency)
+#+END_SRC
+
 Always use UTF-8
 #+BEGIN_SRC emacs-lisp :results none
 (setq locale-coding-system 'utf-8)
