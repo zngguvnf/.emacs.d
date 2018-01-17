@@ -148,6 +148,52 @@ use use-package and load all needed packages
 (setq load-prefer-newer t)
 #+END_SRC
 
+* Layout
+** Themes
+ fix ugly seperators on osx
+ #+Begin_SRC emacs-lisp :results none
+ ;(load "~/Downloads/my-eink-theme.el")
+ ;(setq ns-use-srgb-colorspace nil)
+#+END_SRC
+ #+BEGIN_SRC emacs-lisp :results none
+       ;; (use-package leuven-theme
+       ;; :pin melpa
+       ;; :ensure t)
+       ;; (load-theme 'leuven t)
+       ;; ;(load-theme 'leuven-dark t)
+
+   (setq ns-use-srgb-colorspace nil)
+
+     (use-package all-the-icons)
+     (use-package zerodark-theme
+       :init (zerodark-setup-modeline-format)
+(setq evil-mode-line-format '(before . mode-line-front-space))
+)
+ #+END_SRC
+
+** Font
+ Install source code pro
+ #+BEGIN_SRC shell :tangle brew-install-apps.sh
+ brew tap caskroom/fonts
+ brew cask reinstall --require-sha font-source-code-pro
+ #+END_SRC
+
+ Set Source Code Pro as default font
+ #+BEGIN_SRC emacs-lisp :results none
+ (set-face-attribute 'default nil
+                     :family "Source Code Pro"
+                     :height 100
+                     :weight 'normal
+                     :width 'normal)
+ #+END_SRC
+
+https://github.com/kitschysynq/sqwr-web/blob/master/fonts/Purisa.ttf
+#+BEGIN_SRC emacs-lisp :results none
+  ;; (add-hook 'org-mode-hook (lambda ()
+  ;;                             (setq buffer-face-mode-face '(:family "Purisa"))
+  ;;                             (buffer-face-mode)))
+#+END_SRC
+
 * Which-Key
 displays the key bindings following your currently entered incomplete command
 #+Begin_SRC emacs-lisp
@@ -269,8 +315,8 @@ use non standard powerline
   (use-package window-numbering
   :config
     (window-numbering-mode 1))
-  ;;(defun window-numbering-install-mode-line (&optional position)
-  ;;  "Do nothing.")
+  (defun window-numbering-install-mode-line (&optional position)
+    "Do nothing.")
 #+END_SRC
 ** Keybindings
 switch between windows by number
@@ -400,157 +446,6 @@ and ofc you can use HJLK instead of the default keys (BPNF)
   (push '(?l ?f) resize-window-alias-list)
   (push '(?L ?F) resize-window-alias-list))
 #+END_SRC
-
-* Layout
-** Themes
- fix ugly seperators on osx
- #+Begin_SRC emacs-lisp :results none
- ;(load "~/Downloads/my-eink-theme.el")
- ;(setq ns-use-srgb-colorspace nil)
-#+END_SRC
- #+BEGIN_SRC emacs-lisp :results none
-    (use-package leuven-theme
-    :pin melpa
-    :ensure t)
-    (load-theme 'leuven t)
-    ;(load-theme 'leuven-dark t)
-(setq ns-use-srgb-colorspace nil)
-;;   (use-package all-the-icons)
-   ;(use-package zerodark-theme)
-   ;init (zerodark-setup-modeline-format))
-
- #+END_SRC
-
-** Font
- Install source code pro
- #+BEGIN_SRC shell :tangle brew-install-apps.sh
- brew tap caskroom/fonts
- brew cask reinstall --require-sha font-source-code-pro
- #+END_SRC
-
- Set Source Code Pro as default font
- #+BEGIN_SRC emacs-lisp :results none
- (set-face-attribute 'default nil
-                     :family "Source Code Pro"
-                     :height 100
-                     :weight 'normal
-                     :width 'normal)
- #+END_SRC
-
-https://github.com/kitschysynq/sqwr-web/blob/master/fonts/Purisa.ttf
-#+BEGIN_SRC emacs-lisp :results none
-  ;; (add-hook 'org-mode-hook (lambda ()
-  ;;                             (setq buffer-face-mode-face '(:family "Purisa"))
-  ;;                             (buffer-face-mode)))
-#+END_SRC
-
-** Powerline
-#+Begin_SRC emacs-lisp
-  (use-package spaceline-config
-    :ensure spaceline
-    :ensure spaceline-all-the-icons
-    :config
-
-    (defun window-is-bottom-right (window)
-    (and  window
-         (eq (window-in-direction 'right window nil -1 nil nil) nil)
-         (eq (window-in-direction 'below window nil -1 nil nil) nil)))
-
-    (spaceline-define-segment mu4e-alert-segment
-    "Show the number of unread mails using mu. Requires mu4e-alert"
-    (when (and t (featurep 'mu4e-alert))
-    mu4e-alert-mode-line)
-    :global-override ((:eval mu4e-alert-mode-line)))
-
-    (spaceline-all-the-icons-theme)
-    (defun spaceline--theme (left second-left &rest additional-segments)
-      "Convenience function for the spacemacs and emacs themes."
-      (spaceline-install
-  ;;;;;;;;left
-        `(,left
-          ((all-the-icons-window-number
-          (evil-state :when active)
-          all-the-icons-modified))
-          ((all-the-icons-mode-icon
-          all-the-icons-buffer-id ;schrift dicker machen?!
-          all-the-icons-vc-icon
-          all-the-icons-vc-status))
-          (anzu :priority 4)
-          auto-compile
-          ,second-left
-          ;;major-mode
-          (process :when active)
-          ((flycheck-error flycheck-warning flycheck-info) ;muss ich mal schauen, was es da alles gibt/was man wirklich haben will
-           :when active
-           :priority 3)
-          ;(minor-modes :when active)
-          ;(mu4e-alert-segment :when active)
-          (erc-track :when active)
-          ;(version-control :when active
-          ;                 :priority 7)
-          (org-pomodoro :when active)
-          (org-clock :when active)
-          nyan-cat)
-  ;;;;;;;;;;;;right
-        `(
-          which-function
-          (python-pyvenv :fallback python-pyenv)
-          purpose
-          (battery :when active)
-          (selection-info :priority 2)
-          input-method
-          ((
-            ;;buffer-encoding-abbrev
-            (point-position :when active)
-            (line-column :when active))
-           :separator " | "
-           :priority 3)
-          (global :when active)
-          ,@additional-segments
-          ((buffer-position :when active :priority 0))
-          ((mu4e-alert-segment all-the-icons-time)
-          :when (window-is-bottom-right (get-buffer-window))
-          :tight t)
-          ;;(hud :priority 0)
-          ))
-      (setq-default mode-line-format '("%e" (:eval (spaceline-ml-main))))))
-    (spaceline--theme nil nil)
-    (setq spaceline-highlight-face-func 'spaceline-highlight-face-evil-state)
-    (setq spaceline-all-the-icons-icon-set-window-numbering 'string)
-#+END_SRC
-
-
-colors for mode-line, powerline1 and powerline2
-#+Begin_SRC emacs-lisp
-(set-face-attribute 'mode-line nil
-                    :foreground "#FFFFFF"
-                    :background "#848484"
-                    :box nil)
-(set-face-attribute 'mode-line-inactive nil
-                    :foreground "#FFFFFF"
-                    :background "#D4D4D4"
-                    :box nil)
-
-(set-face-attribute 'powerline-active1 nil
-                    :foreground "#FFFFFF"
-                    :background "#848484"
-                    :box nil)
-(set-face-attribute 'powerline-inactive1 nil
-                    :foreground "#FFFFFF"
-                    :background "#D4D4D4"
-                    :box nil)
-
-(set-face-attribute 'powerline-active2 nil
-                    :foreground "#FFFFFF"
-                    :background "#848484"
-                    :box nil)
-(set-face-attribute 'powerline-inactive2 nil
-                    :foreground "#FFFFFF"
-                    :background "#D4D4D4"
-                    :box nil)
-#+END_SRC
-
-#+RESULTS:
 
 * Smoot-scrolling
 #+Begin_SRC emacs-lisp :results none
