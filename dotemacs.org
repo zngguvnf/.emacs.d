@@ -30,7 +30,7 @@ don't show hat pesky toolbar
 
 hide menu-bar in gui and in terminal
 #+BEGIN_SRC emacs-lisp :results none
-; (menu-bar-mode -1)
+(menu-bar-mode -1)
 #+END_SRC
 
 turn off the splash screen on startup
