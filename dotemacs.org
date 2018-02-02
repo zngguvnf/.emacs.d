@@ -2848,3 +2848,29 @@ A collection of simplified and community-driven man pages.
 
 After installation/updates you have to rename ~/.emacs.d/tldr-master to ~/.emacs.d/tldr
 
+* system monitoring
+
+view htop inside emacs
+https://emacs.stackexchange.com/a/28088
+#+BEGIN_SRC emacs-lisp :results none
+  (defun htop ()
+  "Display htop inside emacs"
+    (interactive)
+    (if (get-buffer "*htop*")
+        (switch-to-buffer "*htop*")
+      (ansi-term "/bin/bash" "htop")
+      (comint-send-string "*htop*" "htop\n")
+      (setq show-trailing-whitespace nil)))
+#+END_SRC
+
+Visualize information about nvidia graphics cards
+#+BEGIN_SRC emacs-lisp :results none
+  (defun nvidia-smi ()
+  "Display NVIDIA System Management Interface inside emacs"
+    (interactive)
+    (if (get-buffer "*nvidia-smi*")
+        (switch-to-buffer "*nvidia-smi*")
+      (ansi-term "/bin/bash" "nvidia-smi")
+      (comint-send-string "*nvidia-smi*" "nvidia-smi -lms 2000\n") ;update every 2000ms
+      (setq show-trailing-whitespace nil)))
+#+END_SRC
