@@ -2535,206 +2535,72 @@ otherwise export the entire body."
 
 * org-static-blog
 #+BEGIN_SRC emacs-lisp :results none
-(add-to-list 'load-path "~/projects/blog/org-static-blog/")
-; (require 'org)
-(require 'org-static-blog)
+        (add-to-list 'load-path "~/projects/blog/org-static-blog/")
+        ; (require 'org)
+        (require 'org-static-blog)
 
-(setq org-static-blog-publish-title "zngguvnf.org")
-(setq org-static-blog-publish-url "https://zngguvnf.org/")
-(setq org-static-blog-publish-directory "~/projects/blog/html/")
-(setq org-static-blog-posts-directory "~/projects/blog/html/posts/")
-(setq org-static-blog-drafts-directory "~/projects/blog/html/drafts/")
-(setq org-export-with-toc nil)
-(setq org-export-with-section-numbers nil)
-(setq org-static-blog-index-length 1)
+        (setq org-static-blog-publish-title "zngguvnf.org")
+        (setq org-static-blog-publish-url "https://zngguvnf.org/")
+        (setq org-static-blog-publish-directory "~/projects/blog/html/")
+        (setq org-static-blog-posts-directory "~/projects/blog/html/posts/")
+        (setq org-static-blog-drafts-directory "~/projects/blog/html/drafts/")
+        (setq org-export-with-toc nil)
+        (setq org-export-with-section-numbers nil)
+        (setq org-static-blog-index-length 6)
+        (setq org-static-blog-enable-tags t)
 
-(setq org-static-blog-page-header
-"<meta  name=\"author\" content=\"zngguvnf\" />
-<link href= \"static/style.css\" rel=\"stylesheet\" type=\"text/css\" />
-<meta http-equiv=\"content-type\" content=\"application/xhtml+xml; charset=UTF-8\" />
-<meta name=\"viewport\" content=\"initial-scale=1,width=device-width,minimum-scale=1\">")
+        (setq org-static-blog-page-header
+        "<meta  name=\"author\" content=\"zngguvnf\" />
+        <link href= \"static/style.css\" rel=\"stylesheet\" type=\"text/css\" />
+        <meta http-equiv=\"content-type\" content=\"application/xhtml+xml; charset=UTF-8\" />
+        <meta name=\"viewport\" content=\"initial-scale=1,width=device-width,minimum-scale=1\">")
 
-(setq org-static-blog-page-preamble
-"<div class=\"header\">
-  <a href=\"https://zngguvnf.org\">zngguvnf's Blog</a>
-</div>")
-
-
-(setq org-static-blog-page-postamble
-"<div id=\"archive\">
-  <a href=\"archive.html\">archive</a>
-</div>
-<center><a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\"><img alt=\"Creative Commons License\" style=\"border-width:0\" src=\"https://i.creativecommons.org/l/by-sa/3.0/88x31.png\" /></a><br /><span xmlns:dct=\"https://purl.org/dc/terms/\" href=\"https://purl.org/dc/dcmitype/Text\" property=\"dct:title\" rel=\"dct:type\">https://zngguvnf.org</span> by <a xmlns:cc=\"https://creativecommons.org/ns#\" href=\"https://zngguvnf.org\" property=\"cc:attributionName\" rel=\"cc:attributionURL\">zngguvnf</a> is licensed under a <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.</center>")
+        (setq org-static-blog-page-preamble
+        "<div class=\"header\">
+          <a href=\"https://zngguvnf.org\">zngguvnf's Blog</a>
+        </div>")
 
 
-;; use org-mode style dates
-(defun org-static-blog-create-index ()
-  "Re-render the blog index page.
-The index page contains the last `org-static-blog-index-length`
-entries as full text entries."
-  (let ((posts (directory-files
-                org-static-blog-posts-directory t ".*\\.org$" nil))
-        (index-file (concat org-static-blog-publish-directory org-static-blog-index-file))
-        (index-entries nil))
-    (dolist (file posts)
-      (org-static-blog-with-find-file
-       file
-       (let ((date (org-static-blog-get-date file))
-             (title (org-static-blog-get-title file))
-             (content (org-export-as 'org-static-blog-post-bare nil nil nil nil))
-             (url (org-static-blog-get-url file)))
-           (add-to-list 'index-entries (list date title url content)))))
-    (org-static-blog-with-find-file
-     index-file
-     (erase-buffer)
-     (insert
-      (concat "<?xml version=\"1.0\" encoding=\"utf-8\"?>
-<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"
-\"https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">
-<html xmlns=\"https://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">
-<head>
-<meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" />
-<link rel=\"alternate\"
-      type=\"appliation/rss+xml\"
-      href=\"" org-static-blog-publish-url org-static-blog-rss-file "\"
-      title=\"RSS feed for " org-static-blog-publish-url "\">
-<title>" org-static-blog-publish-title "</title>"
-org-static-blog-page-header
-"</head>
-<body>
-<div id=\"preamble\" class=\"status\">"
-org-static-blog-page-preamble
-"</div>
-<div id=\"content\">"))
-     (setq index-entries (sort index-entries (lambda (x y) (time-less-p (nth 0 y) (nth 0 x)))))
-     (dolist (idx (number-sequence 0 (1- (min org-static-blog-index-length
-                                              (length index-entries)))))
-       (let ((entry (nth idx index-entries)))
-         (insert
-         (concat  "<h1 class=\"post-title\">"
-                  "<a href=\"" (nth 2 entry) "\">" (nth 1 entry) "</a>"
-                  "<div class=\"post-date\">" "<span style=""font-weight:normal"">" (format-time-string "<%Y-%m-%d>" (nth 0 entry)) "</span>" "</div>"
-         ;;         "<div class=\"post-date\">" "<span style=""font-weight:normal"">" (format-time-string "<%Y-%m-%d %a>" (nth 0 entry)) "</span>" "</div>"
-                  "</h1>\n"
-                  (nth 3 entry)))))
-         ;; (insert
-         ;;  (concat "<div class=\"post-date\">" (format-time-string "%d %b %Y" (nth 0 entry)) "</div>"
-         ;;          "<h1 class=\"post-title\">"
-         ;;          "<a href=\"" (nth 2 entry) "\">" (nth 1 entry) "</a>"
-         ;;          "</h1>\n"
-         ;;          (nth 3 entry)))))
-     (insert
-"<div id=\"archive\">
-  <a href=\"" org-static-blog-archive-file "\">archive</a>
-</div>
-</div>
-</body>"))))
+        (setq org-static-blog-page-postamble
+        "<div id=\"archive\">
+          <a href=\"archive.html\">archive</a>
+        </div>
+        <center><a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\"><img alt=\"Creative Commons License\" style=\"border-width:0\" src=\"https://i.creativecommons.org/l/by-sa/3.0/88x31.png\" /></a><br /><span xmlns:dct=\"https://purl.org/dc/terms/\" href=\"https://purl.org/dc/dcmitype/Text\" property=\"dct:title\" rel=\"dct:type\">https://zngguvnf.org</span> by <a xmlns:cc=\"https://creativecommons.org/ns#\" href=\"https://zngguvnf.org\" property=\"cc:attributionName\" rel=\"cc:attributionURL\">zngguvnf</a> is licensed under a <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.</center>")
 
-(defun org-static-blog-create-archive ()
-  "Re-render the blog archive page.
-The archive page contains single-line links and dates for every
-blog entry, but no entry body."
-  (let ((posts (directory-files
-                org-static-blog-posts-directory t ".*\\.org$" nil))
-        (archive-file (concat org-static-blog-publish-directory org-static-blog-archive-file))
-        (archive-entries nil))
-    (dolist (file posts)
-      (org-static-blog-with-find-file
-       file
-       (let ((date (org-static-blog-get-date file))
-             (title (org-static-blog-get-title file))
-             (url (org-static-blog-get-url file)))
-           (add-to-list 'archive-entries (list date title url)))))
-    (org-static-blog-with-find-file
-     archive-file
-     (erase-buffer)
-     (insert (concat
-              "<?xml version=\"1.0\" encoding=\"utf-8\"?>
-<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"
-\"https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">
-<html xmlns=\"https://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">
-<head>
-<meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" />
-<link rel=\"alternate\"
-      type=\"appliation/rss+xml\"
-      href=\"" org-static-blog-publish-url org-static-blog-rss-file "\"
-      title=\"RSS feed for " org-static-blog-publish-url "\">
-<title>" org-static-blog-publish-title "</title>"
-org-static-blog-page-header
-"</head>
-<body>
-<div id=\"preamble\" class=\"status\">"
-org-static-blog-page-preamble
-"</div>
-<div id=\"content\">
-<h1 class=\"title\">Archive</h1>\n"))
-       (dolist (entry (sort archive-entries (lambda (x y) (time-less-p (car y) (car x)))))
-       ;;   (insert
-       ;;    (concat
-       ;;     "<div class=\"post-date\">" (format-time-string "%d %b %Y" (nth 0 entry)) "</div>"
-       ;;     "<h2 class=\"post-title\">"
-       ;;     "<a href=\"" (nth 2 entry) "\">" (nth 1 entry) "</a>"
-       ;;     "</h2>\n")))
-       ;; (insert "</body>\n </html>"))))
-         (insert
+        (defun org-static-blog-post-preamble (post-filename)
           (concat
-           "<h2 class=\"post-title\">"
-           "<a href=\"" (nth 2 entry) "\">" (nth 1 entry) "</a>"
-           "<div class=\"post-date\">" "<span style=""font-weight:normal"">" (format-time-string "<%Y-%m-%d>" (nth 0 entry)) "</span>" "</div>"
-           "</h2>\n")))
-       (insert "</body>\n </html>"))))
+           "<div class=\"headline\"> <h1 class=\"post-title\">"
+           "<a href=\"" (org-static-blog-get-url post-filename) "\">" (org-static-blog-get-title post-filename) "</a>" "</h1>\n"
+           (org-style-tags post-filename) "</div>"
+           "<div class=\"post-date\">" (format-time-string "<%Y-%m-%d>" (org-static-blog-get-date post-filename)) "</div>"))
+
+      (defun org-style-tags (post-filename)
+          (let ((taglist-content ""))
+            (when (and (org-static-blog-get-tags post-filename) org-static-blog-enable-tags)
+              (setq taglist-content (concat "<div class=\"taglist\">"
+                                            ":"))
+              (dolist (tag (org-static-blog-get-tags post-filename))
+                (setq taglist-content (concat taglist-content "<a href=\""
+                                              org-static-blog-publish-url
+                                              "tag-" (downcase tag) ".html"
+                                              "\">" tag "</a>:")))
+              (setq taglist-content (concat taglist-content "</div>")))
+            taglist-content))
 
 
-(defun org-static-blog-post-template (contents info)
-  "Return complete document string after blog post conversion.
-CONTENTS is the transcoded contents string.  INFO is a plist used
-as a communication channel."
-  (let ((title (org-export-data (plist-get info :title) info))
-        (date (org-timestamp-format (car (plist-get info :date)) "<%Y-%m-%d>")))
-    (concat
-"<?xml version=\"1.0\" encoding=\"utf-8\"?>
-<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"
-\"https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">
-<html xmlns=\"https://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">
-<head>
-<meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" />
-<link rel=\"alternate\"
-      type=\"appliation/rss+xml\"
-      href=\"" org-static-blog-publish-url org-static-blog-rss-file "\"
-      title=\"RSS feed for " org-static-blog-publish-url "\">
-<title>" title "</title>"
-org-static-blog-page-header
-"</head>
-<body>
-<div id=\"preamble\" class=\"status\">"
-org-static-blog-page-preamble
-"</div>
-<div id=\"content\">
-<h1 class=\"post-title\">" title "
-<div class=\"post-date\">"
-"<span style=""font-weight:normal"">"
-date
-"</span>"
-"</div>"
-"</h1>\n"
-contents
-"</div>
-<div id=\"postamble\" class=\"status\">"
-org-static-blog-page-postamble
-"</div>
-</body>
-</html>")))
+        (defun org-static-blog-post-postamble (post-filename)
+        "")
 
-;        (concat  "<h1 class=\"post-title\">"
-;                  "<a href=\"" (nth 2 entry) "\">" (nth 1 entry) "</a>"
-;                  "<div class=\"post-date\">" (format-time-string "<%Y-%m-%d %a>" (nth 0 entry)) "</div>"
-;                  "</h1>\n"
-;                  (nth 3 entry)))))
+  (defun org-static-blog-get-post-summary (post-filename)
+  (concat
+           "<div class=\"headline\"> <h2 class=\"post-title\">"
+           "<a href=\"" (org-static-blog-get-url post-filename) "\">" (org-static-blog-get-title post-filename) "</a>" "</h2>\n"
+           (org-style-tags post-filename) "</div>"
+           "<div class=\"post-date\">" (format-time-string "<%Y-%m-%d>" (org-static-blog-get-date post-filename)) "</div>"))
 
 
-
-;; org todo faces
-(setq org-todo-keywords '((type "TODO(t!)" "NEXT(n!)" "STARTED(s!)" "WAITING(w@)" "DELEGATED(a@)" "PROJECT(p)" "|" "DONE(d!)" "CANCELLED(c@)" "REF(r@)" "SOMEDAY(m!)")))
+        ;; org todo faces
+        (setq org-todo-keywords '((type "TODO(t!)" "NEXT(n!)" "STARTED(s!)" "WAITING(w@)" "DELEGATED(a@)" "PROJECT(p)" "|" "DONE(d!)" "CANCELLED(c@)" "REF(r@)" "SOMEDAY(m!)")))
 
 #+END_SRC
 
