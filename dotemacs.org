@@ -1975,6 +1975,15 @@ brew install aspell --with-lang-de --with-lang-en
 (evil-leader/set-key ";" 'ispell-word)
 #+END_SRC
 
+#+begin_src emacs-lisp :results none
+(use-package flyspell-popup
+  :ensure t
+  :hook (flyspell-mode . flyspell-popup-auto-correct-mode)
+  :config
+  (setq ispell-prefer-aspell t)
+  (setq ispell-really-hunspell t))
+#+end_src
+
 ** Ignore special cases
 https://emacs.stackexchange.com/questions/5415/how-can-i-make-flyspell-ignore-urls
 #+BEGIN_SRC emacs-lisp :results none
