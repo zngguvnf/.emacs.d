@@ -1346,6 +1346,8 @@ For python I will use elpy.
     (setq venv-location "/Users/ms/.env/")
     )
 
+(use-package company-box
+  :hook (company-mode . company-box-mode))
 
 ; (defun set-ipython-shell-writable()
 ;   "Removes the read-only text property from the marked region."
