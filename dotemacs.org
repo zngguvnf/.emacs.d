@@ -1952,10 +1952,10 @@ string-to-int is obsolete https://ftp.gnu.org/old-gnu/Manuals/elisp-manual-20-2.
 * Flycheck
 Flycheck is a modern on-the-fly syntax checking extension
 #+Begin_SRC emacs-lisp :results none
-(use-package flycheck
-  :diminish flycheck-mode
-  :config
-  (global-flycheck-mode))
+;(use-package flycheck
+;  :diminish flycheck-mode
+;  :config
+;  (global-flycheck-mode))
 #+END_SRC
 
 * Flyspell
@@ -1969,21 +1969,23 @@ brew install aspell --with-lang-de --with-lang-en
 
 ** Settings
 #+Begin_SRC emacs-lisp :results none
-(setq ispell-program-name "aspell")
-(setq ispell-dictionary "de")
-(add-hook 'text-mode-hook 'turn-on-flyspell)
-(eval-after-load "flyspell"
-  '(diminish 'flyspell-mode))
-(evil-leader/set-key ";" 'ispell-word)
+  ;; (setq ispell-program-name "aspell")
+  ;; (setq ispell-dictionary "de")
+  ;; (add-hook 'text-mode-hook 'turn-on-flyspell)
+  ;; (eval-after-load "flyspell"
+  ;;  '(diminish 'flyspell-mode))
+  ;; (evil-leader/set-key ";" 'ispell-word)
 #+END_SRC
 
 #+begin_src emacs-lisp :results none
-(use-package flyspell-popup
-  :ensure t
-  :hook (flyspell-mode . flyspell-popup-auto-correct-mode)
-  :config
-  (setq ispell-prefer-aspell t)
-  (setq ispell-really-hunspell t))
+  (use-package flyspell-popup
+   :ensure t
+   :hook (flyspell-mode . flyspell-popup-auto-correct-mode)
+   :config
+   (setq ispell-prefer-aspell t)
+   (setq ispell-really-hunspell t)
+   (setq ispell-dictionary "de"))
+
 #+end_src
 
 ** Ignore special cases
