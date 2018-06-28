@@ -1798,7 +1798,6 @@ in mlint.ml string-to-int durch string-to-number erstetzen.
 string-to-int is obsolete https://ftp.gnu.org/old-gnu/Manuals/elisp-manual-20-2.5/html_chapter/elisp_5.html
 
 #+BEGIN_SRC emacs-lisp :results none
-  (use-package tramp)
 
   (use-package matlab-mode                     ; Major mode for MATLAB(R) dot-m files
   ;  ; :ensure matlab-mode
